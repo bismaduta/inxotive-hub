@@ -1,0 +1,3719 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INXOTIVE HUB - Main Dashboard</title>
+<link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "surface": "#f8f9ff", "surface-dim": "#c8dbfb",
+        "surface-container-lowest": "#ffffff",
+        "surface-container-low": "#eff4ff", "surface-container": "#e6eeff",
+        "surface-container-high": "#dde9ff",
+        "surface-container-highest": "#d3e3ff",
+        "on-surface": "#061c34", "on-surface-variant": "#434654",
+        "outline": "#747685", "outline-variant": "#c3c6d6",
+        "primary": "#5D87FF", "on-primary": "#ffffff",
+        "primary-container": "#dbe1ff", "on-primary-container": "#fefcff",
+        "secondary": "#006b58", "on-secondary": "#ffffff",
+        "secondary-fixed-dim": "#13DEB9",
+        "error": "#ba1a1a", "on-error": "#ffffff",
+        "background": "#f8f9ff", "on-background": "#061c34",
+        "tertiary": "#9a4027", "tertiary-container": "#ffdbd1",
+      },
+      fontFamily: { sans: ["Plus Jakarta Sans", "system-ui", "sans-serif"] },
+      borderRadius: { "2xl": "1rem" },
+      boxShadow: {
+        'ambient-1': '0px 8px 24px rgba(145, 158, 171, 0.12)',
+        'ambient-2': '0px 16px 48px rgba(145, 158, 171, 0.2)',
+      }
+    }
+  }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<style>
+/* MD3 Design Tokens */
+:root {
+  --primary: #5D87FF; --on-primary: #ffffff;
+  --primary-container: #dbe1ff; --on-primary-container: #fefcff;
+  --secondary: #006b58; --secondary-fixed-dim: #13DEB9;
+  --surface: #f8f9ff; --surface-container: #e6eeff;
+  --surface-container-low: #eff4ff;
+  --surface-container-lowest: #ffffff;
+  --surface-container-high: #dde9ff;
+  --surface-container-highest: #d3e3ff;
+  --on-surface: #061c34; --on-surface-variant: #434654;
+  --outline: #747685; --outline-variant: #c3c6d6;
+  --background: #f8f9ff; --on-background: #061c34;
+  --error: #ba1a1a; --on-error: #ffffff;
+  --sidebar-bg: #ffffff; --sidebar-text: #434654;
+  --sidebar-icon: #7C8FAC; --sidebar-active-bg: #dbe1ff;
+  --sidebar-active-text: #5D87FF;
+  --shadow: 0px 8px 24px rgba(145,158,171,0.12);
+  --shadow-lg: 0px 16px 48px rgba(145,158,171,0.2);
+  --radius: 12px;
+  --font: 'Plus Jakarta Sans', sans-serif;
+}
+.dark {
+  --primary: #b4c5ff; --primary-container: #628aff;
+  --secondary: #b1cccc; --secondary-fixed-dim: #b1cccc;
+  --surface: #10131a; --surface-container: #1d2026;
+  --surface-container-low: #191c22;
+  --surface-container-lowest: #0b0e14;
+  --surface-container-high: #272a31;
+  --surface-container-highest: #32353c;
+  --on-surface: #e1e2eb; --on-surface-variant: #c3c6d6;
+  --outline: #8d909f; --outline-variant: #434654;
+  --background: #10131a; --on-background: #e1e2eb;
+  --sidebar-bg: #0b0e14; --sidebar-text: #c3c6d6;
+  --sidebar-icon: #8d909f; --sidebar-active-bg: rgba(98,138,255,0.12);
+  --sidebar-active-text: #b4c5ff;
+  --shadow: 0px 8px 24px rgba(0,0,0,0.4);
+  --shadow-lg: 0px 16px 48px rgba(0,0,0,0.6);
+}
+
+/* Stitch INXOTIVE Design System */
+body { background-color: #F4F5FA; }
+.dark body { background-color: #10131a; }
+
+.card-shadow { box-shadow: 0px 8px 24px rgba(145, 158, 171, 0.12); }
+.dark .card-shadow { box-shadow: 0px 8px 24px rgba(0,0,0,0.4); }
+
+.hover-elevate:hover { box-shadow: 0px 16px 48px rgba(145, 158, 171, 0.2); transform: translateY(-2px); transition: all 0.3s ease; }
+
+.hero-gradient { background: linear-gradient(135deg, #5D87FF 0%, #A5C0FF 100%); }
+.dark .hero-gradient { background: linear-gradient(135deg, #1a2a5a 0%, #2a3a7a 100%); }
+
+.pastel-coral { background-color: #FFF2F2; color: #FA896B; }
+.pastel-lavender { background-color: #EBF3FE; color: #5D87FF; }
+.pastel-mint { background-color: #E6FFFA; color: #13DEB9; }
+.pastel-amber { background-color: #FEF5E5; color: #FFAE1F; }
+
+.dark .pastel-coral { background-color: #2A1B1D; color: #F28C8C; }
+.dark .pastel-lavender { background-color: #1E2438; color: #7592ff; }
+.dark .pastel-mint { background-color: #1A2624; color: #86C2B4; }
+.dark .pastel-amber { background-color: #2B2317; color: #D6B570; }
+
+/* ── Voice Input ── */
+.voice-btn {
+  width: 32px; height: 32px; border-radius: 8px; border: none; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; font-size: 14px;
+  background: transparent; color: var(--text-secondary, #7C8FAC);
+  transition: all .15s; flex-shrink: 0; overflow: hidden; overflow: hidden;
+}
+.voice-btn:hover { background: rgba(93,135,255,0.1); color: #5D87FF; }
+.voice-btn.listening {
+  background: #ef4444; color: #fff;
+}
+.voice-btn.speaking {
+  background: #22c55e; color: #fff;
+}
+@keyframes voiceWave {
+  0% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+  100% { transform: scaleY(0.3); }
+}
+.voice-wave { display: none; align-items: center; gap: 2px; height: 20px; margin: 0 4px; }
+.voice-wave.active { display: inline-flex; }
+.voice-wave span {
+  width: 3px; height: 100%; background: #ef4444; border-radius: 2px;
+  animation: voiceWave 0.6s ease-in-out infinite;
+}
+.voice-wave span:nth-child(2) { animation-delay: 0.1s; }
+.voice-wave span:nth-child(3) { animation-delay: 0.2s; }
+.voice-wave span:nth-child(4) { animation-delay: 0.3s; }
+.voice-wave span:nth-child(5) { animation-delay: 0.4s; }
+.voice-wave span:nth-child(6) { animation-delay: 0.5s; }
+.voice-status {
+  font-size: 11px; color: var(--text-muted, #7C8FAC); display: inline-flex;
+  align-items: center; gap: 4px;
+}
+.tts-toggle {
+  width: 32px; height: 32px; border-radius: 8px; border: none; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; font-size: 14px;
+  background: transparent; color: var(--text-secondary, #7C8FAC); transition: all .15s; overflow: hidden;
+}
+.tts-toggle:hover { background: rgba(93,135,255,0.1); color: #5D87FF; }
+.tts-toggle.active { background: #22c55e; color: #fff; }
+
+.page-section { display: none; }
+.page-section.active { display: flex; animation: pageIn .3s ease; }
+@keyframes pageIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+body { background: #F4F5FA; color: #061c34; overflow: hidden; -webkit-font-smoothing: antialiased; }
+.dark body { background: #10131a; color: #e1e2eb; }
+
+.app { display: flex; height: 100vh; overflow: hidden; }
+.sidebar { width: 260px; min-width: 260px; z-index: 40; }
+.mini-rail { width: 80px; min-width: 80px; z-index: 50; }
+.chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px 20px; }
+.chat-messages::-webkit-scrollbar { width: 6px; }
+.chat-messages::-webkit-scrollbar-thumb { background: #c3c6d6; border-radius: 10px; }
+
+.msg { display: flex; flex-direction: column; max-width: 85%; }
+.msg .bubble { padding: 10px 14px; border-radius: 14px; line-height: 1.6; font-size: 14px; }
+.msg.user .bubble { background: #dbe1ff; }
+.msg.assistant .bubble { background: #eff4ff; border: 1px solid #c3c6d6; }
+.dark .msg.user .bubble { background: rgba(98,138,255,0.12); }
+.dark .msg.assistant .bubble { background: #1d2026; border-color: #434654; }
+
+.chat-input-area { padding: 12px 20px 16px; border-top: 1px solid #c3c6d6; }
+.chat-input-row { display: flex; gap: 8px; border: 1px solid #c3c6d6; border-radius: 12px; padding: 8px 12px; }
+.chat-input { flex: 1; border: none; background: none; outline: none; resize: none; font-family: inherit; font-size: 14px; }
+.status-bar { display: flex; align-items: center; padding: 6px 20px; font-size: 12px; gap: 8px; flex-wrap: wrap; }
+.status-bar .svc-badge { display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:600;background:rgba(34,197,94,0.1);color:#22c55e }
+.dark .status-bar .svc-badge { background:rgba(34,197,94,0.15);color:#4ade80 }
+.mcp-dropdown { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.mcp-dropdown::-webkit-scrollbar { width: 4px; }
+.mcp-dropdown::-webkit-scrollbar-thumb { background: #c3c6d6; border-radius: 4px; }
+.toggle-switch .toggle-slider::before { content:""; position:absolute; height:16px; width:16px; left:2px; bottom:2px; background:white; border-radius:50%; transition:.3s; }
+.toggle-switch input:checked + .toggle-slider { background:#5D87FF; }
+.toggle-switch input:checked + .toggle-slider::before { transform:translateX(16px); }
+.toggle-switch input:not(:checked) + .toggle-slider { background:#c3c6d6; }
+.model-select optgroup { font-size:12px; color:var(--on-surface-variant); }
+.model-select option { padding:4px 8px; }
+.page-section.active#page-chat { flex-direction: column; }
+.page-section.active#page-chat .chat-messages { flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column; }
+.welcome { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; text-align: center; }
+
+.agent-tab { padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; border: 1px solid #c3c6d6; background: #fff; color: #434654; cursor: pointer; white-space: nowrap; }
+.agent-tab.active { background: #5D87FF; color: #fff; border-color: #5D87FF; }
+.dark .agent-tab { background: #1d2026; border-color: #434654; color: #c3c6d6; }
+.dark .agent-tab.active { background: #628aff; color: #fff; }
+
+.model-select { padding: 6px 30px 6px 12px; border-radius: 20px; border: 1px solid #c3c6d6; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23434654' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 10px center; font-size: 13px; appearance: auto; -webkit-appearance: auto; cursor: pointer; max-width: 220px; }
+.dark .model-select { background: #1d2026 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23c3c6d6' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 10px center; border-color: #434654; color: #c3c6d6; }
+.terminal-window { background: #0f172a; border-radius: 12px; font-family: monospace; }
+.terminal-output { padding: 16px; font-size: 13px; color: #e2e8f0; }
+
+.sessions-section.hidden { display: none; }
+.session-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px; cursor: pointer; color: #434654; font-size: 13px; }
+.session-item:hover { background: #eff4ff; }
+.dark .session-item { color: #c3c6d6; }
+.dark .session-item:hover { background: #191c22; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: #c3c6d6; border-radius: 4px; }
+.dark ::-webkit-scrollbar-thumb { background: #434654; }
+
+.yt-tab { padding: 6px 16px; border-radius: 20px; font-size: 13px; border: 1px solid #c3c6d6; background: #fff; color: #ff0000; cursor: pointer; }
+.yt-tab.active { background: #ff0000; color: #fff; }
+.yt-panel { display: none; height: 100%; flex-direction: column; }
+.yt-panel.active { display: flex; }
+.mcp-msg { display: flex; gap: 8px; padding: 8px; border-radius: 8px; background: rgba(93,135,255,0.06); font-size: 13px; }
+
+:root { --surface-high: #e6eeff; --surface-highest: #d3e3ff; }
+.dark { --surface-high: #272a31; --surface-highest: #32353c; }
+
+.welcome .tip { transition:all .15s; }
+.welcome .tip:hover { background:var(--surface-highest); border-color:var(--primary); }
+.welcome textarea.chat-input::placeholder { color:var(--on-surface-variant); opacity:.4; }
+
+@media (max-width: 1023px) {
+  .sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); z-index: 100; }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; }
+  .sidebar-overlay.active { display: block; }
+}
+@media (max-width: 768px) { .mini-rail { display: none; } }
+@media (max-width:1200px) { .stats-grid,.grid-4 { grid-template-columns:repeat(2,1fr); } .charts-grid { grid-template-columns:1fr; } }
+@media (max-width:768px) { .stats-grid,.grid-4 { grid-template-columns:1fr; } .mini-rail { display:none; } .page-section { padding:12px; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <!-- Mini Rail (Level 1) -->
+<aside class="mini-rail" id="miniRail" style="background:var(--surface);border-right:1px solid var(--outline-variant);display:flex;flex-direction:column;align-items:center;padding:24px 0;position:relative">
+  <div style="margin-bottom:32px">
+    <span class="material-symbols-outlined" style="font-size:32px;color:#5D87FF;font-weight:700">hub</span>
+  </div>
+  <nav style="flex:1;width:100%;display:flex;flex-direction:column;gap:12px;align-items:center">
+    <button class="rail-btn active" onclick="navigateTo('overview')" style="width:48px;height:48px;border-radius:12px;border:none;background:var(--primary-container);color:var(--on-primary-container);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s">
+      <span class="material-symbols-outlined fill-icon" style="font-size:24px;font-variation-settings:'FILL' 1">dashboard</span>
+    </button>
+    <button class="rail-btn" onclick="navigateTo('chat')" style="width:48px;height:48px;border-radius:12px;border:none;background:transparent;color:var(--sidebar-icon, #7C8FAC);cursor:pointer;display:flex;align-items:center;justify-content:center">
+      <span class="material-symbols-outlined" style="font-size:24px">chat</span>
+    </button>
+    <button class="rail-btn" onclick="navigateTo('brain')" style="width:48px;height:48px;border-radius:12px;border:none;background:transparent;color:var(--sidebar-icon, #7C8FAC);cursor:pointer;display:flex;align-items:center;justify-content:center">
+      <span class="material-symbols-outlined" style="font-size:24px">psychology</span>
+    </button>
+    <button class="rail-btn" onclick="navigateTo('market')" style="width:48px;height:48px;border-radius:12px;border:none;background:transparent;color:var(--sidebar-icon, #7C8FAC);cursor:pointer;display:flex;align-items:center;justify-content:center">
+      <span class="material-symbols-outlined" style="font-size:24px">monitoring</span>
+    </button>
+    <button class="rail-btn" onclick="navigateTo('terminal')" style="width:48px;height:48px;border-radius:12px;border:none;background:transparent;color:var(--sidebar-icon, #7C8FAC);cursor:pointer;display:flex;align-items:center;justify-content:center">
+      <span class="material-symbols-outlined" style="font-size:24px">terminal</span>
+    </button>
+    <button class="rail-btn" onclick="navigateTo('settings')" style="width:48px;height:48px;border-radius:12px;border:none;background:transparent;color:var(--sidebar-icon, #7C8FAC);cursor:pointer;display:flex;align-items:center;justify-content:center">
+      <span class="material-symbols-outlined" style="font-size:24px">settings</span>
+    </button>
+  </nav>
+  <div style="width:40px;height:40px;border-radius:50%;margin-top:auto;border:2px solid var(--surface-container);background:#5D87FF;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:600">BI</div>
+</aside>
+
+<!-- Sidebar (Level 2) -->
+<aside class="sidebar" id="sidebar" style="background:var(--sidebar-bg,#fff);display:flex;flex-direction:column;border-right:1px solid var(--outline-variant);transition:transform .3s ease">
+  <div style="padding:24px 24px 16px;border-bottom:1px solid var(--outline-variant)">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:20px;font-weight:800;color:#5D87FF">INXOTIVE <span style="color:#5D87FF">HUB</span></div>
+        <div style="font-size:11px;color:var(--on-surface-variant,#434654);margin-top:2px;text-transform:uppercase;letter-spacing:1px">Main Dashboard</div>
+      </div>
+      <button class="sidebar-close" id="sidebarClose" style="background:none;border:none;color:var(--sidebar-text,#434654);font-size:20px;cursor:pointer">&times;</button>
+    </div>
+  </div>
+  <div style="padding:12px">
+    <button onclick="newSession()" style="width:100%;background:var(--surface-container,#e6eeff);color:var(--on-surface,#061c34);border:none;padding:10px;border-radius:12px;display:flex;align-items:center;gap:8px;justify-content:center;font-size:14px;font-weight:600;cursor:pointer">
+      <span class="material-symbols-outlined" style="font-size:18px;font-variation-settings:'FILL' 1,'wght' 600">add</span> New Chat
+    </button>
+  </div>
+  <nav class="sidebar-nav" id="sidebarNav" style="flex:1;overflow-y:auto;padding:12px">
+    <div style="font-size:11px;font-weight:700;color:var(--outline,#747685);text-transform:uppercase;letter-spacing:1px;padding:16px 16px 8px">Main</div>
+    <button class="nav-item active" data-page="overview" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">dashboard</span><span>Overview</span></button>
+    <button class="nav-item" data-page="chat" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">chat</span><span>Chat</span></button>
+    <button class="nav-item" data-page="brainstorm" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">groups</span><span>Brainstorm</span></button>
+    <button class="nav-item" data-page="pipeline" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">account_tree</span><span>Pipeline</span></button>
+    <button class="nav-item" data-page="knowledge" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">menu_book</span><span>Knowledge</span></button>
+    <div style="font-size:11px;font-weight:700;color:var(--outline,#747685);text-transform:uppercase;letter-spacing:1px;padding:16px 16px 8px">Odyssey</div>
+    <button class="nav-item" data-page="brain" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">psychology</span><span>Brain</span></button>
+    <button class="nav-item" data-page="notes" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">sticky_note_2</span><span>Notes</span></button>
+    <button class="nav-item" data-page="tasks" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">task_alt</span><span>Tasks</span></button>
+    <button class="nav-item" data-page="calendar" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">calendar_month</span><span>Calendar</span></button>
+    <button class="nav-item" data-page="library" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">library_books</span><span>Library</span></button>
+    <button class="nav-item" data-page="compare" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">compare_arrows</span><span>Compare</span></button>
+    <button class="nav-item" data-page="cookbook" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">local_dining</span><span>Cookbook</span></button>
+    <button class="nav-item" data-page="themes" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">palette</span><span>Themes</span></button>
+    <div style="font-size:11px;font-weight:700;color:var(--outline,#747685);text-transform:uppercase;letter-spacing:1px;padding:16px 16px 8px">Tools</div>
+    <button class="nav-item" data-page="market" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">monitoring</span><span>Market</span></button>
+    <button class="nav-item" data-page="docker" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">view_in_ar</span><span>Docker</span></button>
+    <button class="nav-item" data-page="terminal" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">terminal</span><span>Terminal</span></button>
+    <button class="nav-item" data-page="files" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">folder</span><span>Files</span></button>
+    <button class="nav-item" data-page="wa" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">smartphone</span><span>WA Bridge</span></button>
+    <div style="font-size:11px;font-weight:700;color:var(--outline,#747685);text-transform:uppercase;letter-spacing:1px;padding:16px 16px 8px">System</div>
+    <button class="nav-item" data-page="system" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">monitor_heart</span><span>System</span></button>
+    <button class="nav-item" data-page="settings" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">settings</span><span>Settings</span></button>
+    <button class="nav-item" onclick="window.open('http://localhost:7777','_blank')" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:14px;font-weight:500;color:var(--sidebar-text,#434654);transition:all .15s"><span class="material-symbols-outlined" style="font-size:20px;color:var(--sidebar-icon,#7C8FAC)">construction</span><span>Builder</span></button>
+  </nav>
+  <!-- Session list (hidden by default, shown when on chat page) -->
+  <div id="sessionsSection" class="sidebar-sessions" style="display:none;flex:1;overflow-y:auto;padding:8px 12px;border-top:1px solid var(--outline-variant)">
+    <div style="font-size:11px;font-weight:700;color:var(--outline,#747685);text-transform:uppercase;letter-spacing:1px;padding:8px 4px">Sessions</div>
+    <div id="sessionList"></div>
+  </div>
+  <div style="padding:16px;border-top:1px solid var(--outline-variant);display:flex;gap:8px">
+    <button class="nav-item" style="flex:1;justify-content:center;padding:8px" onclick="navigateTo('settings')"><span class="material-symbols-outlined" style="font-size:20px">settings</span></button>
+    <button class="nav-item" style="flex:1;justify-content:center;padding:8px" onclick="toggleTheme()"><span class="material-symbols-outlined" style="font-size:20px">dark_mode</span></button>
+  </div>
+</aside><!-- Main -->
+  <div class="main">
+    <!-- Top Bar -->
+    <div class="topbar" style="display:flex;align-items:center;gap:16px;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--outline-variant);min-height:56px">
+      <button class="hamburger" id="hamburger" aria-label="Toggle sidebar" style="display:none;background:none;border:none;color:var(--on-surface-variant);font-size:22px;cursor:pointer;padding:4px">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      <div class="topbar-content" id="topbarContent" style="display:flex;align-items:center;gap:12px;flex:1"></div>
+      <button class="theme-btn" id="themeBtn" title="Toggle dark mode" style="width:38px;height:38px;border-radius:10px;border:none;background:var(--surface-container-low);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--on-surface-variant)">
+        <span class="material-symbols-outlined" style="font-size:22px;font-variation-settings:'FILL' 0">dark_mode</span>
+      </button>
+    </div><!-- Chat -->
+    <div class="chat-area" id="chatArea">
+      <div class="page-section active" id="page-chat">
+      <div class="chat-messages" id="chatMessages">
+        <div class="welcome" id="welcomeScreen">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;max-width:700px;margin:0 auto">
+            <h2 style="font-size:42px;font-weight:700;color:var(--on-surface);margin-bottom:32px;letter-spacing:-0.02em;line-height:1.2">Apa yang ingin kita buat hari ini?</h2>
+            <div style="width:100%;background:var(--surface-container);border:1px solid var(--outline-variant);border-radius:24px;padding:24px;margin-bottom:16px">
+              <textarea class="chat-input" id="chatInput" rows="1" placeholder="Type / for skills..." style="width:100%;background:transparent;border:none;outline:none;resize:none;font-family:var(--font);font-size:18px;color:var(--on-surface);min-height:60px"></textarea>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+                <button class="chat-btn" onclick="document.getElementById('fileInput').click()" title="Attach" style="width:36px;height:36px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;background:transparent;color:var(--on-surface-variant)">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
+                <div style="display:flex;align-items:center;gap:12px">
+                  <span style="font-size:13px;color:var(--on-surface-variant)">9r/max-free</span>
+                  <button class="chat-btn" style="width:36px;height:36px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;background:transparent;color:var(--on-surface-variant)" onclick="handleSend()" title="Send">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                  </button>
+                  <button class="chat-btn send" id="sendBtn" onclick="handleSend()" title="Send" style="width:36px;height:36px;border-radius:10px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;background:var(--primary);color:var(--on-primary)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 10v3"></path><path d="M6 6v11"></path><path d="M10 3v18"></path><path d="M14 8v7"></path><path d="M18 5v13"></path><path d="M22 10v3"></path></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
+              <button class="tip" onclick="quickChat('Tulis artikel tentang AI')" style="display:flex;align-items:center;gap:6px;padding:8px 18px;border-radius:20px;font-size:13px;font-weight:500;background:var(--surface-high);border:1px solid var(--outline-variant);color:var(--on-surface);cursor:pointer"><span class="material-symbols-outlined" style="font-size:16px">edit</span> Write</button>
+              <button class="tip" onclick="quickChat('Ajari saya Python')" style="display:flex;align-items:center;gap:6px;padding:8px 18px;border-radius:20px;font-size:13px;font-weight:500;background:var(--surface-high);border:1px solid var(--outline-variant);color:var(--on-surface);cursor:pointer"><span class="material-symbols-outlined" style="font-size:16px">school</span> Learn</button>
+              <button class="tip" onclick="quickChat('Buat function React')" style="display:flex;align-items:center;gap:6px;padding:8px 18px;border-radius:20px;font-size:13px;font-weight:500;background:var(--surface-high);border:1px solid var(--outline-variant);color:var(--on-surface);cursor:pointer"><span class="material-symbols-outlined" style="font-size:16px">code</span> Code</button>
+              <button class="tip" onclick="quickChat('Ide liburan')" style="display:flex;align-items:center;gap:6px;padding:8px 18px;border-radius:20px;font-size:13px;font-weight:500;background:var(--surface-high);border:1px solid var(--outline-variant);color:var(--on-surface);cursor:pointer"><span class="material-symbols-outlined" style="font-size:16px">coffee</span> Life stuff</button>
+              <button class="tip" onclick="quickChat('Kasih saran terbaikmu')" style="display:flex;align-items:center;gap:6px;padding:8px 18px;border-radius:20px;font-size:13px;font-weight:500;background:var(--surface-high);border:1px solid var(--outline-variant);color:var(--on-surface);cursor:pointer"><span class="material-symbols-outlined" style="font-size:16px">lightbulb</span> Claude's choice</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-area" style="display:none">
+        <div class="chat-input-row">
+          <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()" title="Voice input (mic)">
+            <i class="fas fa-microphone"></i>
+          </button>
+          <div class="voice-wave" id="voiceWave"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <textarea class="chat-input" id="chatInput2" rows="1" placeholder="Ketik pesan..." autofocus></textarea>
+          <div class="chat-actions">
+            <button class="chat-btn" onclick="document.getElementById('fileInput').click()" title="Attach file">
+              <i class="fas fa-paperclip"></i>
+            </button>
+            <input type="file" id="fileInput" style="display:none" accept="image/*,.txt,.py,.js,.md,.json,.csv,.html,.css" multiple>
+            <button class="chat-btn send" id="sendBtn2" onclick="handleSend()" title="Send">
+              <i class="fas fa-arrow-up"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="status-bar" id="statusBar">
+        <span id="statusText">Ready</span>
+        <span class="voice-status" id="voiceStatus" style="display:none"></span>
+        <span class="svc-badge" id="svcBadge" style="display:none"><span class="w-2 h-2 rounded-full bg-current"></span> <span id="svcCount">0</span> online</span>
+        <span style="flex:1"></span>
+        <span id="modelInfo"></span>
+        <button class="tts-toggle" id="ttsToggle" onclick="toggleTTS()" title="Text-to-Speech: Nonaktif">
+          <i class="fas fa-volume-off"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Overview -->
+    <div class="page-section" id="page-overview">
+      <section class="hero-gradient rounded-2xl p-8 text-on-primary flex flex-col md:flex-row items-center justify-between relative overflow-hidden card-shadow">
+<div class="z-10 flex flex-col gap-4 max-w-lg">
+<h2 class="text-headline-lg font-headline-lg font-bold">Welcome back, Bisma 👋</h2>
+<p class="text-body-lg font-body-lg text-primary-fixed-dim">Your ecosystem is running smoothly</p>
+<div class="flex gap-3 mt-2">
+<span class="bg-on-primary/20 backdrop-blur-sm px-4 py-2 rounded-full text-label font-label text-on-primary flex items-center gap-2">
+<span class="w-2 h-2 bg-secondary-fixed-dim rounded-full"></span> <span id="overviewStatus">8/8 Services Up</span>
+                        </span>
+<span class="bg-on-primary/20 backdrop-blur-sm px-4 py-2 rounded-full text-label font-label text-on-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="check_circle">check_circle</span> 98% Uptime
+                        </span>
+</div>
+</div>
+<div class="absolute right-0 bottom-0 top-0 w-1/3 md:w-1/2 flex items-end justify-end pointer-events-none opacity-90">
+<img alt="Abstract 3D Illustration" class="h-[120%] object-cover object-left-bottom mix-blend-overlay" data-alt="A stylized, modern 3D abstract illustration featuring soft geometric shapes and floating spheres in a light, high-tech aesthetic. The shapes have a smooth, almost frosted glass texture, reflecting cool blue and soft pink tones. The lighting is studio-quality and diffused, creating a premium, inviting atmosphere suitable for an AI dashboard hero banner." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIkowjYDBhIUkoFejWcGqDYPzL1Bori7TETP1m2kC6HeuVPS0tTctzE-G4Sjn0xxRlB9pRTsHXbA_xOxg6qkhezng3e_CT_pnr8ibrB_xJ5XOAFKBpQocLW0MsTMSoCwaNkQs6jKQjeNqs5_cK0A5Yk8iyQNp-5G4iQujBW7HULnR9Sr_fYsi9GYf8EhI1g1H6_vLWF8HJJsQsR2c8gDLk14YR_h-xW8d2nJ49Y8o4_sB3xXA2k4HQPQ8YE_iIp2VvvCvemVParIOp"/>
+</div>
+</section>
+      <div id="overviewContent" style="display:contents">
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter" id="servicesGrid">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest rounded-2xl p-5 card-shadow hover-elevate relative overflow-hidden flex flex-col justify-between">
+<div class="absolute -right-4 -top-4 w-24 h-24 rounded-full pastel-coral opacity-50 pointer-events-none"></div>
+<div class="w-12 h-12 rounded-xl pastel-coral flex items-center justify-center mb-4 z-10">
+<span class="material-symbols-outlined text-[24px]" data-icon="cloud_done" data-weight="fill">cloud_done</span>
+</div>
+<div>
+<h3 class="text-headline-md font-headline-md text-on-surface mb-1">8/8</h3>
+<p class="text-body-md font-body-md text-on-surface-variant">Services</p>
+</div>
+<div class="mt-2 text-label font-label text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span> All Up
+                    </div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest rounded-2xl p-5 card-shadow hover-elevate relative overflow-hidden flex flex-col justify-between">
+<div class="absolute -right-4 -top-4 w-24 h-24 rounded-full pastel-lavender opacity-50 pointer-events-none"></div>
+<div class="w-12 h-12 rounded-xl pastel-lavender flex items-center justify-center mb-4 z-10">
+<span class="material-symbols-outlined text-[24px]" data-icon="psychology" data-weight="fill">psychology</span>
+</div>
+<div>
+<h3 class="text-headline-md font-headline-md text-on-surface mb-1">71</h3>
+<p class="text-body-md font-body-md text-on-surface-variant">AI Models</p>
+</div>
+<div class="mt-2 text-label font-label text-primary flex items-center gap-1">
+                        via 9Router
+                    </div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest rounded-2xl p-5 card-shadow hover-elevate relative overflow-hidden flex flex-col justify-between">
+<div class="absolute -right-4 -top-4 w-24 h-24 rounded-full pastel-mint opacity-50 pointer-events-none"></div>
+<div class="w-12 h-12 rounded-xl pastel-mint flex items-center justify-center mb-4 z-10">
+<span class="material-symbols-outlined text-[24px]" data-icon="view_in_ar" data-weight="fill">view_in_ar</span>
+</div>
+<div>
+<h3 class="text-headline-md font-headline-md text-on-surface mb-1">7</h3>
+<p class="text-body-md font-body-md text-on-surface-variant">Containers</p>
+</div>
+<div class="mt-2 text-label font-label text-secondary flex items-center gap-1">
+                        Docker
+                    </div>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-container-lowest rounded-2xl p-5 card-shadow hover-elevate relative overflow-hidden flex flex-col justify-between">
+<div class="absolute -right-4 -top-4 w-24 h-24 rounded-full pastel-amber opacity-50 pointer-events-none"></div>
+<div class="w-12 h-12 rounded-xl pastel-amber flex items-center justify-center mb-4 z-10">
+<span class="material-symbols-outlined text-[24px]" data-icon="smart_toy" data-weight="fill">smart_toy</span>
+</div>
+<div>
+<h3 class="text-headline-md font-headline-md text-on-surface mb-1">Online</h3>
+<p class="text-body-md font-body-md text-on-surface-variant">Bot Status</p>
+</div>
+<div class="mt-2 text-label font-label text-tertiary-container flex items-center gap-1">
+                        Discord
+                    </div>
+</div>
+</section>
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- System Performance (2/3) -->
+<div class="lg:col-span-2 bg-surface-container-lowest rounded-2xl p-card-padding card-shadow">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-headline-sm font-headline-sm text-on-surface">System Performance</h3>
+<div class="flex bg-surface-container rounded-lg p-1">
+<button class="px-4 py-1.5 rounded-md bg-surface-container-lowest text-on-surface text-caption font-caption shadow-sm">CPU</button>
+<button class="px-4 py-1.5 rounded-md text-on-surface-variant text-caption font-caption hover:bg-surface-container-low">RAM</button>
+</div>
+</div>
+<div class="w-full h-64 mb-6" id="chart-performance"></div>
+<div class="grid grid-cols-2 gap-4 pt-6 border-t border-outline-variant">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full pastel-lavender flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]" data-icon="memory">memory</span>
+</div>
+<div>
+<p class="text-headline-sm font-headline-sm text-on-surface">42%</p>
+<p class="text-body-md font-body-md text-on-surface-variant">Avg CPU Load</p>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full pastel-mint flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]" data-icon="storage">storage</span>
+</div>
+<div>
+<p class="text-headline-sm font-headline-sm text-on-surface">10.7 GB</p>
+<p class="text-body-md font-body-md text-on-surface-variant">RAM Usage</p>
+</div>
+</div>
+<button class="bg-primary hover:bg-surface-tint text-on-primary px-4 py-2 rounded-xl text-body-md font-body-md transition-colors shadow-sm">
+                                View Details
+                            </button>
+</div>
+</div>
+</div>
+<!-- Resource Usage (1/3) -->
+<div class="bg-surface-container-lowest rounded-2xl p-card-padding card-shadow flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-headline-sm font-headline-sm text-on-surface">Resource Usage</h3>
+<button class="text-on-surface-variant hover:bg-surface-container rounded-full p-1">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+<div class="flex-1 flex flex-col items-center justify-center relative">
+<!-- Placeholder for Radial Gauge -->
+<div class="w-full h-48 flex items-center justify-center" id="chart-radial"></div>
+<div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
+<span class="text-headline-lg font-headline-lg text-on-surface" id="uptimeRing">98%</span>
+<span class="text-caption font-caption text-secondary flex items-center gap-1 bg-mint/20 px-2 py-1 rounded-full mt-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="arrow_upward">arrow_upward</span> Uptime
+                            </span>
+</div>
+</div>
+<div class="mt-6 grid grid-cols-2 gap-y-3 gap-x-2">
+<div class="flex items-center gap-2 text-body-md font-body-md text-on-surface-variant">
+<span class="w-3 h-3 rounded-full bg-primary"></span> CPU
+                        </div>
+<div class="flex items-center gap-2 text-body-md font-body-md text-on-surface-variant">
+<span class="w-3 h-3 rounded-full bg-[#13DEB9]"></span> RAM
+                        </div>
+<div class="flex items-center gap-2 text-body-md font-body-md text-on-surface-variant">
+<span class="w-3 h-3 rounded-full bg-[#FA896B]"></span> Disk
+                        </div>
+<div class="flex items-center gap-2 text-body-md font-body-md text-on-surface-variant">
+<span class="w-3 h-3 rounded-full bg-[#FFAE1F]"></span> Network
+                        </div>
+</div>
+</div>
+</section>
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter pb-20">
+<!-- System Resources Bars -->
+<div class="bg-surface-container-lowest rounded-2xl p-card-padding card-shadow">
+<h3 class="text-headline-sm font-headline-sm text-on-surface mb-6" id="systemStats">System Resources</h3>
+<div class="space-y-6">
+<!-- CPU -->
+<div>
+<div class="flex justify-between text-body-md font-body-md mb-2">
+<span class="text-on-surface font-semibold">CPU Core Load</span>
+<span class="text-on-surface-variant">42%</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-2">
+<div class="bg-primary h-2 rounded-full" style="width: 42%"></div>
+</div>
+</div>
+<!-- RAM -->
+<div>
+<div class="flex justify-between text-body-md font-body-md mb-2">
+<span class="text-on-surface font-semibold">RAM Usage</span>
+<span class="text-on-surface-variant">10773 / 15293 MB</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-2">
+<div class="bg-[#13DEB9] h-2 rounded-full" style="width: 70%"></div>
+</div>
+</div>
+<!-- Disk -->
+<div>
+<div class="flex justify-between text-body-md font-body-md mb-2">
+<span class="text-on-surface font-semibold">Disk Space</span>
+<span class="text-on-surface-variant">321 GB Free</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-2">
+<div class="bg-[#FA896B] h-2 rounded-full" style="width: 25%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Agents List -->
+<div class="bg-surface-container-lowest rounded-2xl p-card-padding card-shadow">
+<h3 class="text-headline-sm font-headline-sm text-on-surface mb-6" id="staffList">Active Agents</h3>
+<div class="space-y-4">
+<div class="flex items-center gap-4 p-2 hover:bg-surface-container-low rounded-xl transition-colors cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-body-md">B</div>
+<div class="flex-1">
+<p class="text-body-md font-body-md font-semibold text-on-surface">Bisma Admin</p>
+<p class="text-caption font-caption text-on-surface-variant">Master Controller</p>
+</div>
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+</div>
+<div class="flex items-center gap-4 p-2 hover:bg-surface-container-low rounded-xl transition-colors cursor-pointer">
+<div class="w-10 h-10 rounded-full pastel-lavender flex items-center justify-center font-bold text-body-md">RX</div>
+<div class="flex-1">
+<p class="text-body-md font-body-md font-semibold text-on-surface">ResearchX</p>
+<p class="text-caption font-caption text-on-surface-variant">Data Gathering</p>
+</div>
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+</div>
+<div class="flex items-center gap-4 p-2 hover:bg-surface-container-low rounded-xl transition-colors cursor-pointer">
+<div class="w-10 h-10 rounded-full pastel-mint flex items-center justify-center font-bold text-body-md">TX</div>
+<div class="flex-1">
+<p class="text-body-md font-body-md font-semibold text-on-surface">TradeX</p>
+<p class="text-caption font-caption text-on-surface-variant">Market Analysis</p>
+</div>
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+</div>
+<div class="flex items-center gap-4 p-2 hover:bg-surface-container-low rounded-xl transition-colors cursor-pointer">
+<div class="w-10 h-10 rounded-full pastel-amber flex items-center justify-center font-bold text-body-md">WD</div>
+<div class="flex-1">
+<p class="text-body-md font-body-md font-semibold text-on-surface">WebDev</p>
+<p class="text-caption font-caption text-on-surface-variant">UI Generation</p>
+</div>
+<span class="w-2 h-2 rounded-full bg-[#FFAE1F]"></span>
+</div>
+</div>
+</div>
+<!-- Quick Actions & Satisfaction -->
+<div class="flex flex-col gap-gutter">
+<!-- Satisfaction (Half height) -->
+<div class="bg-surface-container-lowest rounded-2xl p-5 card-shadow flex-1 flex items-center justify-between">
+<div>
+<h3 class="text-headline-sm font-headline-sm text-on-surface mb-1">Satisfaction</h3>
+<p class="text-body-md font-body-md text-on-surface-variant">User Feedback</p>
+</div>
+<div class="relative w-20 h-20">
+<!-- Simple pure CSS donut representation -->
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-surface-container" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-primary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="85, 100" stroke-width="3"></path>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center text-body-md font-bold text-on-surface">85%</div>
+</div>
+</div>
+<!-- Quick Actions (Half height) -->
+<div class="bg-surface-container-lowest rounded-2xl p-5 card-shadow flex-1">
+<h3 class="text-body-lg font-body-lg font-semibold text-on-surface mb-4" id="quickActions">Quick Actions</h3>
+<div class="grid grid-cols-2 gap-3">
+<button class="border border-outline-variant hover:border-primary text-on-surface-variant hover:text-primary rounded-xl py-2 px-3 text-caption font-caption flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="restart_alt">restart_alt</span> Restart Bot
+                            </button>
+<button class="border border-outline-variant hover:border-primary text-on-surface-variant hover:text-primary rounded-xl py-2 px-3 text-caption font-caption flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="description">description</span> Briefing
+                            </button>
+<button class="border border-outline-variant hover:border-primary text-on-surface-variant hover:text-primary rounded-xl py-2 px-3 text-caption font-caption flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="view_in_ar">view_in_ar</span> Docker
+                            </button>
+<button class="border border-outline-variant hover:border-primary text-on-surface-variant hover:text-primary rounded-xl py-2 px-3 text-caption font-caption flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="storefront">storefront</span> Market
+                            </button>
+</div>
+</div>
+</div>
+</section>
+      </div>
+          <!-- Recent Events -->
+      <section class="bg-surface-container-lowest rounded-2xl p-card-padding card-shadow mt-gutter">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-headline-sm font-headline-sm text-on-surface">Recent Events</h3>
+        </div>
+        <div id="eventsList" class="space-y-2"><div class="empty-state">No recent events</div></div>
+      </section>
+    </div><!-- Pipeline -->
+    <div class="page-section" id="page-pipeline">
+      <div class="page-header"><h2>Client Pipeline</h2><p>Intake to deploy tracking</p></div>
+      <div id="pipelineContent">
+        <div class="grid-4" id="pipelineStats"></div>
+        <div class="pipeline-steps" id="pipelineSteps"></div>
+        <div class="grid-5" id="pipelineStages"></div>
+      </div>
+    </div>
+
+    <!-- Knowledge -->
+    <div class="page-section" id="page-knowledge">
+      <div class="page-header"><h2>Knowledge Base</h2><p>Search documents and ask AI</p></div>
+      <div class="card">
+        <div class="search-bar">
+          <input class="form-input" id="kbQuery" placeholder="Cari di knowledge base..." style="flex:1">
+          <select class="form-select" id="kbAgent"><option value="">All Agents</option></select>
+          <button class="btn-primary" id="kbSearchBtn">Search</button>
+        </div>
+      </div>
+      <div class="tab-bar" style="margin-top:12px">
+        <button class="tab active" data-tab="search">Search Results</button>
+        <button class="tab" data-tab="ask">Ask AI</button>
+      </div>
+      <div id="kbResults" style="margin-top:8px">
+        <div class="empty-state"><i class="fas fa-search" style="font-size:24px;margin-bottom:8px;display:block"></i>Masukkan query untuk mencari</div>
+      </div>
+    </div>
+
+    <!-- Brainstorm -->
+    <div class="page-section" id="page-brainstorm">
+      <div class="page-header"><h2>Brainstorm</h2><p>Multi-agent discussion forum</p></div>
+      <div class="card"><div class="card-header">Setup</div>
+        <input class="form-input" id="bsTopic" placeholder="Topik brainstorming..." style="width:100%;margin-bottom:12px">
+        <div class="grid-4" id="bsAgents">
+          <label class="agent-checkbox"><input type="checkbox" value="researchx" checked> ResearchX</label>
+          <label class="agent-checkbox"><input type="checkbox" value="bizmind" checked> BizMind</label>
+          <label class="agent-checkbox"><input type="checkbox" value="webdev"> WebDev</label>
+          <label class="agent-checkbox"><input type="checkbox" value="flowbot"> FlowBot</label>
+        </div>
+        <div class="mode-selector">
+          <label><input type="radio" name="bsMode" value="sequential" checked> Sequential</label>
+          <label><input type="radio" name="bsMode" value="debate"> Debate</label>
+          <label><input type="radio" name="bsMode" value="hierarchical"> Hierarchical</label>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn-primary" id="bsStartBtn">Start</button>
+          <button class="btn-secondary" id="bsStopBtn" style="display:none">Stop</button>
+          <button class="btn-secondary" id="bsExportBtn">Export</button>
+        </div>
+      </div>
+      <div class="card" style="margin-top:8px">
+        <div class="card-header">Discussion</div>
+        <div id="bsResults"><div class="empty-state" style="padding:24px">Masukkan topik dan klik Start</div></div>
+      </div>
+    </div>
+
+    <!-- Terminal -->
+    <div class="page-section" id="page-terminal">
+      <div class="page-header"><h2>Terminal</h2><p>Web-based shell</p></div>
+      <div class="terminal-window">
+        <div class="terminal-output" id="terminalOutput"></div>
+        <div class="terminal-input-row">
+          <span class="terminal-prompt">$</span>
+          <input class="terminal-input" id="terminalInput" placeholder="type command..." autofocus spellcheck="false">
+        </div>
+      </div>
+    </div>
+
+    <!-- Files -->
+    <div class="page-section" id="page-files">
+      <div class="page-header"><h2>File Browser</h2><p>Browse server filesystem</p></div>
+      <div class="card">
+        <div class="file-breadcrumb" id="filesBreadcrumb"></div>
+        <div id="filesList"></div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="page-section" id="page-settings">
+      <div class="page-header"><h2>Settings</h2><p>Dashboard preferences</p></div>
+      <div class="card" style="max-width:500px">
+        <div class="settings-row"><label>Theme</label><button class="btn-secondary" id="settingsThemeBtn">Toggle Dark</button></div>
+        <div class="settings-row"><label>Default Agent</label><select class="form-select" id="settingsDefaultAgent"></select></div>
+        <div class="settings-row"><label>Default Model</label><select class="form-select" id="settingsDefaultModel"></select></div>
+        <div class="settings-row"><label>Refresh Interval</label><select class="form-select" id="settingsRefreshInterval"><option value="15">15s</option><option value="30" selected>30s</option><option value="60">60s</option></select></div>
+      </div>
+      <div class="card" style="max-width:500px;margin-top:12px">
+        <div class="card-header">System Info</div>
+        <div id="systemInfo"><p style="color:var(--text-muted)">Loading...</p></div>
+      </div>
+
+      <!-- Autodream -->
+      <div class="card" style="max-width:500px;margin-top:12px">
+        <div class="card-header"><i class="fas fa-brain"></i> Autodream — Memory Consolidation</div>
+        <div style="padding:8px 0">
+          <div id="autodreamStatus" style="font-size:13px;color:var(--text-muted);margin-bottom:8px">Checking last run...</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn-primary" onclick="runAutodream()"><i class="fas fa-sync"></i> Consolidate</button>
+            <button class="btn-secondary" onclick="runAutodreamDaily()"><i class="fas fa-leaf"></i> Daily</button>
+            <button class="btn-secondary" onclick="showAutodreamInsights()"><i class="fas fa-chart-bar"></i> Insights</button>
+          </div>
+          <div id="autodreamResult" style="margin-top:8px;font-size:13px;line-height:1.5"></div>
+        </div>
+      </div>
+
+      <!-- Hooks -->
+      <div class="card" style="max-width:500px;margin-top:12px">
+        <div class="card-header"><i class="fas fa-plug"></i> Hooks — Event Pipeline</div>
+        <div style="padding:8px 0">
+          <div id="hooksStatus" style="font-size:13px;color:var(--text-muted);margin-bottom:8px">Loading hooks...</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn-primary" onclick="refreshHooks()"><i class="fas fa-sync"></i> Refresh</button>
+          </div>
+          <div id="hooksList" style="margin-top:6px"></div>
+        </div>
+      </div>
+    </div>
+          
+      <!-- Scheduled Tasks -->
+      <div class="card" style="max-width:500px;margin-top:12px">
+        <div class="card-header"><i class="fas fa-clock"></i> Scheduled Tasks</div>
+        <div style="padding:8px 0">
+          <div id="tasksList"><div class="empty-state">Loading...</div></div>
+        </div>
+      </div>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Brain (Memory) -->
+    <div class="page-section" id="page-brain">
+      <div class="page-header"><h2>Brain</h2><p>Long-term memory & knowledge base</p></div>
+      <div class="card">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input class="form-input" id="memoryQuery" placeholder="Search memories..." style="flex:1">
+          <button class="btn-primary" onclick="searchMemory()">Search</button>
+          <button class="btn-secondary" onclick="loadMemory()">All</button>
+        </div>
+      </div>
+      <div id="memoryList"><div class="loading-state">Loading memories...</div></div>
+    </div>
+
+    <!-- Notes -->
+    <div class="page-section" id="page-notes">
+      <div class="page-header"><h2>Notes</h2><p>Quick notes & ideas</p></div>
+      <div class="card">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input class="form-input" id="newNoteTitle" placeholder="New note title..." style="flex:1">
+          <button class="btn-primary" onclick="createNote()"><i class="fas fa-plus"></i> New</button>
+        </div>
+      </div>
+      <div id="notesList"><div class="loading-state">Loading notes...</div></div>
+    </div>
+
+    <!-- Tasks -->
+    <div class="page-section" id="page-tasks">
+      <div class="page-header"><h2>Tasks</h2><p>Scheduled tasks & automation</p></div>
+      <div id="tasksContent"><div class="loading-state">Loading tasks...</div></div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="page-section" id="page-calendar">
+      <div class="page-header"><h2>Calendar</h2><p>Events & schedule</p></div>
+      <div id="calendarContent"><div class="loading-state">Loading calendar...</div></div>
+    </div>
+
+    <!-- Compare -->
+    <div class="page-section" id="page-compare">
+      <div class="page-header"><h2>Compare</h2><p>A/B model comparison</p></div>
+      <div id="compareContent"><div class="loading-state">Loading compare...</div></div>
+    </div>
+
+    <!-- Cookbook -->
+    <div class="page-section" id="page-cookbook">
+      <div class="page-header"><h2>Cookbook</h2><p>Model download & serving</p></div>
+      <div id="cookbookContent"><div class="loading-state">Loading cookbook...</div></div>
+    </div>
+
+    <!-- Library -->
+    <div class="page-section" id="page-library">
+      <div class="page-header"><h2>Library</h2><p>Documents & knowledge base</p></div>
+      <div id="libraryContent"><div class="loading-state">Loading library...</div></div>
+    </div>
+
+    <!-- Themes -->
+    <div class="page-section" id="page-themes">
+      <div class="page-header"><h2>Themes</h2><p>Appearance & customization</p></div>
+      <div id="themesContent"><div class="loading-state">Loading themes...</div></div>
+    </div>
+
+    <!-- Market -->
+    <div class="page-section" id="page-market">
+      <div class="page-header"><h2>Market</h2><p>Crypto prices, technicals & news</p></div>
+      <div id="marketContent">
+        <div class="stats-grid" id="marketCoins"></div>
+        <div class="grid-2" style="margin-top:12px">
+          <div class="card"><div class="card-header"><i class="fas fa-chart-bar"></i> Fear & Greed</div><div id="marketFng"></div></div>
+          <div class="card"><div class="card-header"><i class="fas fa-newspaper"></i> News</div><div id="marketNews"></div></div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <div class="card-header"><i class="fas fa-microchip"></i> BTC Technical</div>
+          <div id="marketTechnical"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Docker -->
+    <div class="page-section" id="page-docker">
+      <div class="page-header"><h2>Docker</h2><p>Container management</p></div>
+      <div id="dockerContent"></div>
+    </div>
+
+    <!-- WA Bridge -->
+    <div class="page-section" id="page-wa">
+      <div class="page-header"><h2>WhatsApp Bridge</h2><p>Connection management</p></div>
+      <div id="waContent"></div>
+    </div>
+  </div>
+
+    <!-- System Dashboard -->
+    <div class="page-section" id="page-system">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-headline-lg font-headline-lg font-bold text-on-surface">System Dashboard</h2>
+          <p class="text-body-md font-body-md text-on-surface-variant">Real-time server monitoring & management</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="border border-outline-variant hover:border-primary text-on-surface-variant hover:text-primary rounded-xl px-4 py-2 text-caption font-caption flex items-center gap-2 transition-colors" onclick="refreshSystem()">
+            <span class="material-symbols-outlined text-[16px]" data-icon="refresh">refresh</span> Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Cards Row -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6" id="sysStatsCards">
+        <div class="bg-surface-container-lowest rounded-2xl p-5 card-shadow"><div class="loading-state">Loading...</div></div>
+        <div class="bg-surface-container-lowest rounded-2xl p-5 card-shadow"><div class="loading-state">Loading...</div></div>
+        <div class="bg-surface-container-lowest rounded-2xl p-5 card-shadow"><div class="loading-state">Loading...</div></div>
+        <div class="bg-surface-container-lowest rounded-2xl p-5 card-shadow"><div class="loading-state">Loading...</div></div>
+      </div>
+
+      <!-- Main Grid: Services + Docker -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <!-- Services -->
+        <div class="bg-surface-container-lowest rounded-2xl p-card-padding card-shadow">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-headline-sm font-headline-sm text-on-surface">Services</h3>
+            <span class="text-caption font-caption text-on-surface-variant" id="sysServicesCount">checking...</span>
+          </div>
+          <div id="sysServices" class="space-y-2"><div class="loading-state">Loading services...</div></div>
+        </div>
+        <!-- Docker -->
+        <div class="bg-surface-container-lowest rounded-2xl p-card-padding card-shadow">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-headline-sm font-headline-sm text-on-surface">Docker Containers</h3>
+            <span class="text-caption font-caption text-on-surface-variant" id="sysDockerCount">checking...</span>
+          </div>
+          <div id="sysDocker" class="space-y-2"><div class="loading-state">Loading containers...</div></div>
+        </div>
+      </div>
+
+      <!-- Second Row: Resource Bars + MCP -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <!-- Resources -->
+        <div class="bg-surface-container-lowest rounded-2xl p-card-padding card-shadow">
+          <h3 class="text-headline-sm font-headline-sm text-on-surface mb-4">Resource Usage</h3>
+          <div class="space-y-4" id="sysResources">
+            <div class="loading-state">Loading resources...</div>
+          </div>
+        </div>
+        <!-- MCP Servers -->
+        <div class="bg-surface-container-lowest rounded-2xl p-card-padding card-shadow">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-headline-sm font-headline-sm text-on-surface">MCP Servers</h3>
+            <span class="text-caption font-caption text-on-surface-variant" id="sysMcpCount">checking...</span>
+          </div>
+          <div id="sysMcp" class="space-y-2"><div class="loading-state">Loading MCP servers...</div></div>
+        </div>
+      </div>
+
+      <!-- Third Row: Heal Stats + Systemd Timers -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <div class="bg-surface-container-lowest rounded-2xl p-card-padding card-shadow">
+          <h3 class="text-headline-sm font-headline-sm text-on-surface mb-4">Self-Healing Stats</h3>
+          <div id="sysHeal" class="space-y-2"><div class="loading-state">Loading...</div></div>
+        </div>
+        <div class="bg-surface-container-lowest rounded-2xl p-card-padding card-shadow">
+          <h3 class="text-headline-sm font-headline-sm text-on-surface mb-4">Scheduled Tasks</h3>
+          <div id="sysTasks" class="space-y-2"><div class="loading-state">Loading...</div></div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="bg-surface-container-lowest rounded-2xl p-card-padding card-shadow">
+        <h3 class="text-headline-sm font-headline-sm text-on-surface mb-4">Quick Actions</h3>
+        <div class="flex flex-wrap gap-3">
+          <button class="bg-primary hover:bg-surface-tint text-on-primary px-4 py-2 rounded-xl text-body-md font-body-md transition-colors flex items-center gap-2" onclick="quickRun('Restart Bot','sudo systemctl restart inxotive-bot')">
+            <span class="material-symbols-outlined text-[16px]" data-icon="restart_alt">restart_alt</span> Restart Bot
+          </button>
+          <button class="border border-outline-variant hover:border-primary text-on-surface-variant hover:text-primary rounded-xl px-4 py-2 text-body-md font-body-md transition-colors flex items-center gap-2" onclick="quickRun('Health Check','curl -s localhost:8888/hub 2>/dev/null && echo OK')">
+            <span class="material-symbols-outlined text-[16px]" data-icon="check_circle">check_circle</span> Health Check
+          </button>
+          <button class="border border-outline-variant hover:border-primary text-on-surface-variant hover:text-primary rounded-xl px-4 py-2 text-body-md font-body-md transition-colors flex items-center gap-2" onclick="quickRun('Disk Usage','df -h /')">
+            <span class="material-symbols-outlined text-[16px]" data-icon="storage">storage</span> Disk Usage
+          </button>
+          <button class="border border-outline-variant hover:border-primary text-on-surface-variant hover:text-primary rounded-xl px-4 py-2 text-body-md font-body-md transition-colors flex items-center gap-2" onclick="quickRun('Uptime','uptime')">
+            <span class="material-symbols-outlined text-[16px]" data-icon="schedule">schedule</span> Uptime
+          </button>
+          <button class="border border-outline-variant hover:border-primary text-on-surface-variant hover:text-primary rounded-xl px-4 py-2 text-body-md font-body-md transition-colors flex items-center gap-2" onclick="quickRun('Memory Detail','free -h')">
+            <span class="material-symbols-outlined text-[16px]" data-icon="memory">memory</span> Memory
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MCP Dropdown (hidden by default, shown when MCP button clicked) -->
+    <div class="mcp-dropdown" id="mcpDropdown" style="display:none;position:absolute;top:56px;right:80px;z-index:999;background:var(--surface-container-lowest);border:1px solid var(--outline-variant);border-radius:16px;padding:16px;width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.12);max-height:400px;overflow-y:auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span style="font-weight:600;font-size:14px;color:var(--on-surface)">🛠️ MCP Servers</span>
+        <span style="font-size:11px;color:var(--text-muted)" id="mcpRefreshTime"></span>
+      </div>
+      <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">
+        <span style="font-size:12px;color:var(--on-surface-variant)">Enable MCP</span>
+        <label class="toggle-switch" style="position:relative;display:inline-block;width:36px;height:20px">
+          <input type="checkbox" id="mcpToggleCheck" checked onchange="toggleMCP()" style="opacity:0;width:0;height:0">
+          <span class="toggle-slider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--primary);border-radius:20px;transition:.3s"></span>
+        </label>
+      </div>
+      <div id="mcpPanelBody">
+        <div style="text-align:center;padding:12px;color:var(--text-muted);font-size:13px">
+          <i class="fas fa-spinner fa-spin"></i> Loading MCP servers...
+        </div>
+      </div>
+    </div>
+
+    <!-- YouTube Panel -->
+    <div class="yt-panel" id="ytPanel">
+      <div class="yt-search-box">
+        <input class="yt-search-input" id="ytSearchInput" placeholder="Cari video di YouTube..." spellcheck="false">
+        <button class="yt-search-btn" onclick="ytSearch()"><i class="fas fa-search"></i> Cari</button>
+      </div>
+      <div class="yt-content" id="ytContent">
+        <div class="yt-empty" id="ytEmpty">
+          <div class="icon"><i class="fab fa-youtube"></i></div>
+          <h3>Cari Video YouTube</h3>
+          <p style="color:var(--text-secondary);font-size:13px;margin-top:4px">Temukan video, baca transcript, analisis dengan AI</p>
+          <div style="margin-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+            <span class="tip" onclick="ytQuickSearch('kecerdasan buatan indonesia')">AI Indonesia</span>
+            <span class="tip" onclick="ytQuickSearch('tutorial python pemula')">Python Tutorial</span>
+            <span class="tip" onclick="ytQuickSearch('crypto news today')">Crypto News</span>
+            <span class="tip" onclick="ytQuickSearch('bisnis online 2026')">Bisnis Online</span>
+          </div>
+        </div>
+        <div class="yt-results" id="ytResults" style="display:none"></div>
+        <div class="yt-detail" id="ytDetail"></div>
+        <div class="yt-loading" id="ytLoading" style="display:none"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──
+let sessions = [];
+let currentSessionId = null;
+let currentAgent = 'researchx';
+let currentModel = localStorage.getItem('hub_model') || '9r/max-free';
+let isStreaming = false;
+let abortCtrl = null;
+let messages = []; // current session messages
+const AGENTS = ['researchx','opencode','claudecode','tradex','webdev','bizmind','dr_pharma','flowbot','securityx','architectx','codereview','perfopt','debugger','datax','devopsx','planner','codeexplorer','silenthunter','pythonreview','fastapix','refactorx','dbx','netfix','seox'];
+
+// ── Init ──
+document.addEventListener('DOMContentLoaded', init);
+
+async function init() {
+  loadTheme();
+  await loadModels();
+  await loadSessions();
+  setupEventListeners();
+  setupAutoResize();
+  initDashboard();
+}
+
+function initDashboard() {
+  // Sidebar nav
+  var nav = document.getElementById('sidebarNav');
+  if (nav) {
+    nav.addEventListener('click', function(e) {
+      var item = e.target.closest('.nav-item');
+      if (item && item.dataset.page) navigateTo(item.dataset.page);
+    });
+  }
+  // Mini rail buttons
+  var rail = document.getElementById('miniRail');
+  if (rail) {
+    rail.addEventListener('click', function(e) {
+      var btn = e.target.closest('.rail-btn');
+      if (btn && btn.dataset.page) navigateTo(btn.dataset.page);
+    });
+  }
+  // Init chart
+  if (typeof ApexCharts !== 'undefined') {
+    renderChart();
+  }
+  var lastPage = 'chat'; // Force chat as default
+  navigateTo(lastPage);
+}
+
+function switchChartPeriod(period, e) {
+  if (!e) e = window.event;
+  var btns = document.querySelectorAll('#page-overview .btn-ghost');
+  btns.forEach(function(b) { b.style.background = ''; });
+  if (e && e.target) e.target.style.background = 'var(--surface-container-lowest)';
+}
+
+function renderChart() {
+  var el = document.getElementById('chart-performance');
+  if (!el) return;
+  var options = {
+    series: [{ name: 'CPU Load', data: [31,40,28,51,42,65,45,58,42,38,55,42] },
+             { name: 'RAM Usage', data: [11,32,45,32,34,52,41,38,45,30,48,52] }],
+    chart: { height: 250, type: 'area', fontFamily: 'Plus Jakarta Sans, sans-serif',
+      toolbar: { show: false }, zoom: { enabled: false } },
+    colors: ['#5D87FF', '#13DEB9'],
+    dataLabels: { enabled: false },
+    stroke: { curve: 'smooth', width: 2 },
+    fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.3, opacityTo: 0.05, stops: [0,90,100] } },
+    xaxis: { categories: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+      axisBorder: { show: false }, axisTicks: { show: false },
+      labels: { style: { colors: '#747685' } } },
+    yaxis: { labels: { style: { colors: '#747685' } } },
+    grid: { borderColor: '#eff4ff', strokeDashArray: 4 },
+    legend: { show: false }
+  };
+  try { new ApexCharts(el, options).render(); } catch(e) { console.log('Chart error:', e); }
+}
+
+function setupEventListeners() {
+  // Hamburger
+  document.getElementById('hamburger').onclick = () => toggleSidebar(true);
+  document.getElementById('sidebarClose').onclick = () => toggleSidebar(false);
+  document.getElementById('sidebarOverlay').onclick = () => toggleSidebar(false);
+
+  // Theme
+  document.getElementById('themeBtn').onclick = toggleTheme;
+
+  // Chat input
+  document.getElementById('chatInput').onkeydown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+  };
+
+  // File input
+  document.getElementById('fileInput').onchange = handleFileAttach;
+}
+
+function setupAutoResize() {
+  const ta = document.getElementById('chatInput');
+  ta.oninput = () => {
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
+  };
+}
+
+// ── Sidebar ──
+function toggleSidebar(open) {
+  document.getElementById('sidebar').classList.toggle('open', open);
+  document.getElementById('sidebarOverlay').classList.toggle('active', open);
+}
+
+function closeSidebar() {
+  toggleSidebar(false);
+}
+
+// ── Theme ──
+function loadTheme() {
+  var t = localStorage.getItem('hub_theme');
+  if (t === 'dark') { document.documentElement.classList.add('dark'); updateThemeIcon(true); }
+  // Also sync with Odyssey
+  var themeName = t === 'dark' ? 'dark' : 'light';
+  fetch('/api/odyssey/prefs', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({theme: themeName}) }).catch(function(){});
+}
+function toggleTheme() {
+  var isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('hub_theme', isDark ? 'dark' : 'light');
+  updateThemeIcon(isDark);
+  // Notify Odyssey of theme change
+  var themeName = isDark ? 'dark' : 'light';
+  fetch('/api/odyssey/prefs', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({theme: themeName}) }).catch(function(){});
+}
+function updateThemeIcon(dark) {
+  var tb = document.getElementById('themeBtn');
+  if (tb) tb.innerHTML = dark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+}
+
+// ── Models ──
+async function loadModels() {
+  try {
+    const r = await fetch('/api/models');
+    const data = await r.json();
+    window.availableModels = data;
+  } catch(e) {
+    console.error('Models error:', e);
+  }
+}
+
+function updateModelInfo() {
+  var model = currentModel.replace(/^(ollama\/|9r\/)/, '');
+  var prefix = currentModel.startsWith('9r/') ? '9R' : 'OLL';
+  var mi = document.getElementById('modelInfo');
+  if (mi) mi.textContent = prefix + ' ' + model;
+}
+
+// ── Sessions ──
+async function loadSessions() {
+  try {
+    const r = await fetch('/api/sessions');
+    const data = await r.json();
+    sessions = data.sessions || [];
+    renderSessions();
+  } catch(e) {
+    console.error('Sessions error:', e);
+  }
+}
+
+function renderSessions() {
+  var list = document.getElementById('sessionList');
+  if (!list) return;
+  if (sessions.length === 0) {
+    list.innerHTML = '<div class="empty-state">Belum ada percakapan</div>';
+    return;
+  }
+  list.innerHTML = sessions.map(s => `
+    <div class="session-item${s.id === currentSessionId ? ' active' : ''}" data-id="${s.id}" onclick="selectSession('${s.id}')">
+      <i class="fas fa-comment" style="font-size:11px;opacity:.7;flex-shrink:0"></i>
+      <span class="title">${escHtml(s.title)}</span>
+      <span style="font-size:10px;opacity:.5;flex-shrink:0">${s.message_count||0}</span>
+      <button class="del" onclick="event.stopPropagation();deleteSession('${s.id}')" title="Delete">&times;</button>
+    </div>
+  `).join('');
+}
+
+async function newSession() {
+  try {
+    var r = await fetch('/api/sessions', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({"title":"New Chat"}) });
+    const data = await r.json();
+    currentSessionId = data.id;
+    messages = [];
+    renderChat();
+    await loadSessions();
+    closeSidebar();
+    document.getElementById('chatInput').focus();
+  } catch(e) {
+    console.error('New session error:', e);
+  }
+}
+
+async function selectSession(id) {
+  if (isStreaming) stopChat();
+  currentSessionId = id;
+  try {
+    const r = await fetch(`/api/sessions/${id}/history`);
+    const data = await r.json();
+    messages = data.messages || [];
+  } catch(e) {
+    messages = [];
+  }
+  renderChat();
+  renderSessions();
+  closeSidebar();
+}
+
+async function deleteSession(id) {
+  if (!confirm('Hapus percakapan ini?')) return;
+  try {
+    await fetch(`/api/sessions/${id}`, { method: 'DELETE' });
+    if (currentSessionId === id) {
+      currentSessionId = null;
+      messages = [];
+      renderChat();
+    }
+    await loadSessions();
+  } catch(e) {
+    console.error('Delete error:', e);
+  }
+}
+
+function ensureSession() {
+  if (!currentSessionId) {
+    // Auto-create
+    return fetch('/api/sessions', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({"title":"Quick Chat"}) })
+      .then(r => r.json())
+      .then(data => {
+        currentSessionId = data.id;
+        return true;
+      }).catch(() => false);
+  }
+  return Promise.resolve(true);
+}
+
+// ── Chat ──
+function renderChat() {
+  const container = document.getElementById('chatMessages');
+  const welcome = document.getElementById('welcomeScreen');
+
+  if (!currentSessionId || messages.length === 0) {
+    // Show welcome
+    container.innerHTML = '';
+    container.appendChild(welcome);
+    welcome.style.display = 'flex';
+    return;
+  }
+  welcome.style.display = 'none';
+  container.innerHTML = messages.map((msg, i) => {
+    if (msg.role === 'system') {
+      return `<div class="msg system"><div class="bubble" style="font-size:12px;color:var(--text-muted);background:none;border:none;text-align:center">${escHtml(msg.content)}</div></div>`;
+    }
+    const roleLabel = msg.role === 'user' ? 'Kamu' : agentLabel(msg.agent || 'researchx');
+    const content = renderMarkdown(msg.content || '');
+    return `<div class="msg ${msg.role}">
+      <div class="role">${roleLabel}</div>
+      <div class="bubble">${content}</div>
+    </div>`;
+  }).join('');
+  scrollToBottom();
+}
+
+function scrollToBottom() {
+  var container = document.getElementById('chatMessages');
+  if (!container) return;
+  setTimeout(function() { container.scrollTop = container.scrollHeight; }, 20);
+}
+
+async function handleSend() {
+  if (isStreaming) {
+    stopChat();
+    return;
+  }
+
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  const fileInput = document.getElementById('fileInput');
+  const files = fileInput.files;
+
+  if (!text && (!files || files.length === 0)) return;
+
+  // Ensure session exists
+  const ok = await ensureSession();
+  if (!ok) {
+    setStatus('Gagal membuat session');
+    return;
+  }
+
+  // Add user message
+  const userMsg = text || '(file attached)';
+
+  // Clear input
+  input.value = '';
+  input.style.height = 'auto';
+  fileInput.value = '';
+
+  // Hide welcome
+  document.getElementById('welcomeScreen').style.display = 'none';
+
+  // Show user message
+  addMessage('user', userMsg);
+
+  // Start streaming
+  startStream(userMsg);
+
+  // Update session list
+  await loadSessions();
+}
+
+function agentLabel(agent) {
+  const labels = {researchx:'ResearchX', opencode:'OpenCode', claudecode:'ClaudeCode',
+    tradex:'TradeX', webdev:'WebDev', bizmind:'BizMind', dr_pharma:'Dr.Pharma', flowbot:'FlowBot',
+    securityx:'SecurityX', architectx:'ArchitectX', codereview:'CodeReview',
+    perfopt:'PerfOpt', debugger:'Debugger', datax:'DataX', devopsx:'DevOpsX',
+    planner:'Planner', codeexplorer:'CodeExplorer', silenthunter:'SilentHunter',
+    pythonreview:'PythonReview', fastapix:'FastAPIx', refactorx:'RefactorX',
+    dbx:'DBX', netfix:'NetFix', seox:'SEOx'};
+  return labels[agent] || agent.charAt(0).toUpperCase()+agent.slice(1);
+}
+
+function addMessage(role, content) {
+  const container = document.getElementById('chatMessages');
+  document.getElementById('welcomeScreen').style.display = 'none';
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  const label = role === 'user' ? 'Kamu' : agentLabel(currentAgent);
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  if (role === 'user') {
+    bubble.textContent = content;
+  }
+  div.innerHTML = `<div class="role">${label}</div>`;
+  div.appendChild(bubble);
+  container.appendChild(div);
+  scrollToBottom();
+  return {div, bubble};
+}
+
+async function startStream(userText) {
+  // Create AI message bubble using addMessage
+  const {div: msgDiv, bubble} = addMessage('assistant', '');
+  bubble.classList.add('streaming');
+
+  setStatus('Mengetik...');
+  showTyping(true);
+  setStreaming(true);
+
+  // Update send button to stop
+  updateSendBtn(true);
+
+  // Build messages for API (include history + new user message)
+  const apiMessages = [...messages.map(m => ({role: m.role, content: m.content})), {role: 'user', content: userText}];
+
+  abortCtrl = new AbortController();
+  let fullReply = '';
+
+  try {
+    const resp = await fetch('/api/chat/stream', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        messages: apiMessages,
+        agent: currentAgent,
+        model: currentModel,
+        session_id: currentSessionId,
+        mcp_enabled: typeof mcpEnabled !== 'undefined' ? mcpEnabled : true
+      }),
+      signal: abortCtrl.signal
+    });
+
+    if (!resp.ok) {
+      bubble.textContent = `Error: ${resp.status}`;
+      bubble.classList.remove('streaming');
+      setStreaming(false);
+      updateSendBtn(false);
+      setStatus('Error');
+      return;
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, {stream: true});
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const dataStr = line.slice(6).trim();
+          if (!dataStr || dataStr === '[DONE]') continue;
+          try {
+            const data = JSON.parse(dataStr);
+            if (data.token) {
+              fullReply += data.token;
+              bubble.innerHTML = renderMarkdown(escHtml(fullReply));
+              bubble.classList.remove('streaming');
+              bubble.classList.add('streaming');
+              scrollToBottom();
+              setTypingText(fullReply.length > 0 ? null : 'Mengetik...');
+            }
+            if (data.error) {
+              bubble.innerHTML = `<span style="color:var(--danger)">Error: ${escHtml(data.error)}</span>`;
+              bubble.classList.remove('streaming');
+            }
+            if (data.tool_call) {
+              // MCP tool call — show in chat
+              var tc = data.tool_call;
+              if (tc.result) {
+                bubble.innerHTML += '<div class="mcp-tool-result">🛠️ <span class="mcp-tool-call">' + escHtml(tc.server + '/' + tc.tool) + '</span><br>' + escHtml(tc.result.slice(0, 500)) + '</div>';
+              } else if (tc.error) {
+                bubble.innerHTML += '<div class="mcp-tool-result" style="border-color:var(--danger)">⚠️ Tool error: ' + escHtml(tc.error) + '</div>';
+              }
+              scrollToBottom();
+            }
+            if (data.done) {
+              // Done
+              if (data.tool_result) {
+                // Model requested a tool call — could do follow-up here
+              }
+            }
+          } catch(e) {}
+        }
+      }
+    }
+
+    // Stream ended
+    bubble.classList.remove('streaming');
+    if (fullReply) {
+      bubble.innerHTML = renderMarkdown(escHtml(fullReply));
+    } else {
+      bubble.innerHTML = '<em style="color:var(--text-muted)">(respons kosong — coba model lain)</em>';
+    }
+
+  } catch(e) {
+    if (e.name === 'AbortError') {
+      if (fullReply) {
+        bubble.innerHTML = renderMarkdown(escHtml(fullReply));
+        bubble.classList.remove('streaming');
+        // Add stopped indicator
+        const stopped = document.createElement('div');
+        stopped.className = 'stopped-indicator';
+        stopped.textContent = '[Dihentikan]';
+        bubble.appendChild(stopped);
+      } else {
+        bubble.textContent = '[Dihentikan]';
+        bubble.classList.remove('streaming');
+      }
+    } else {
+      bubble.textContent = `Error: ${e.message}`;
+      bubble.classList.remove('streaming');
+    }
+  }
+
+  showTyping(false);
+  setStreaming(false);
+  updateSendBtn(false);
+  setStatus(fullReply ? 'Siap' : 'Siap');
+
+  // Update messages state
+  if (fullReply) {
+    messages.push({role: 'user', content: userText});
+    messages.push({role: 'assistant', content: fullReply, agent: currentAgent, model: currentModel});
+    await loadSessions();
+  }
+}
+
+function stopChat() {
+  if (abortCtrl) {
+    abortCtrl.abort();
+  }
+}
+
+function setStreaming(val) {
+  isStreaming = val;
+}
+
+function updateSendBtn(streaming) {
+  const btn = document.getElementById('sendBtn');
+  if (streaming) {
+    btn.innerHTML = '<i class="fas fa-stop"></i>';
+    btn.classList.add('stop');
+    btn.title = 'Stop';
+  } else {
+    btn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+    btn.classList.remove('stop');
+    btn.title = 'Send';
+  }
+}
+
+function setStatus(text) {
+  document.getElementById('statusText').textContent = text;
+}
+
+function showTyping(show) {
+  const bar = document.getElementById('statusBar');
+  let typing = bar.querySelector('.typing');
+  if (show) {
+    if (!typing) {
+      typing = document.createElement('div');
+      typing.className = 'typing';
+      typing.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+      bar.insertBefore(typing, bar.firstChild);
+    }
+  } else {
+    if (typing) typing.remove();
+  }
+}
+
+function setTypingText(text) {
+  if (text) setStatus(text);
+}
+
+// ── Quick Chat ──
+function quickChat(text) {
+  document.getElementById('chatInput').value = text;
+  handleSend();
+}
+
+// ── File Attach ──
+function handleFileAttach(e) {
+  const files = e.target.files;
+  if (!files.length) return;
+  const names = Array.from(files).map(f => f.name).join(', ');
+  document.getElementById('chatInput').value = `[File: ${names}] `;
+  // Could upload and include file content, keeping simple for now
+}
+
+// ── Markdown Renderer ──
+function renderMarkdown(text) {
+  // Code blocks — extract first to prevent inner processing
+  const codeBlocks = [];
+  text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+    const i = codeBlocks.push(`<pre><code>${escHtml(code.trim())}</code></pre>`) - 1;
+    return `\x00CODE${i}\x00`;
+  });
+  // Inline code — protect from formatting
+  text = text.replace(/`([^`]+)`/g, (_, c) => `\x00INL${codeBlocks.push('<code>'+escHtml(c)+'</code>')-1}\x00`);
+
+  // Escape HTML (but not our placeholders)
+  text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  text = text.replace(/\x00CODE\d+\x00/g, m => {
+    const i = parseInt(m.match(/\d+/)[0]);
+    return codeBlocks[i];
+  });
+  text = text.replace(/\x00INL\d+\x00/g, m => {
+    const i = parseInt(m.match(/\d+/)[0]);
+    return codeBlocks[i];
+  });
+
+  // Now safe to process markdown
+  let lines = text.split('\n');
+  let result = [];
+  let inTable = false;
+  let tableRows = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    let l = lines[i];
+
+    // Table
+    if (l.startsWith('|') && l.endsWith('|')) {
+      const cells = l.split('|').filter(c => c.trim() !== '').map(c => c.trim());
+      // Skip separator rows
+      if (cells.every(c => /^:?-+:?$/.test(c))) continue;
+      if (!inTable) { inTable = true; tableRows = []; }
+      tableRows.push('<tr>' + cells.map(c => '<td>' + c + '</td>').join('') + '</tr>');
+      continue;
+    } else {
+      if (inTable && tableRows.length) {
+        result.push('<table>' + tableRows.join('') + '</table>');
+        inTable = false; tableRows = [];
+      }
+    }
+
+    // Already HTML (code blocks restored)
+    if (l.includes('<pre') || l.includes('</pre>')) {
+      result.push(l); continue;
+    }
+    if (!l.trim()) { result.push(''); continue; }
+
+    // Headers
+    if (/^#{1,4}\s/.test(l)) {
+      const level = l.match(/^#+/)[0].length;
+      const text2 = l.replace(/^#+\s+/, '').replace(/ *#+$/, '');
+      result.push(`<h${Math.min(level+1,4)}>${text2}</h${Math.min(level+1,4)}>`);
+      continue;
+    }
+
+    // HR
+    if (/^[-*_]{3,}$/.test(l.trim())) { result.push('<hr>'); continue; }
+
+    // Blockquote
+    if (l.startsWith('> ')) {
+      result.push('<blockquote>' + l.slice(2) + '</blockquote>');
+      continue;
+    }
+
+    // List items
+    if (/^[\s]*[-*+]\s+/.test(l)) {
+      result.push('<li>' + l.replace(/^[\s]*[-*+]\s+/, '') + '</li>');
+      continue;
+    }
+    if (/^[\s]*\d+\.\s+/.test(l)) {
+      result.push('<li>' + l.replace(/^[\s]*\d+\.\s+/, '') + '</li>');
+      continue;
+    }
+
+    // Regular line — paragraph
+    result.push('<p>' + l + '</p>');
+  }
+
+  // Flush table
+  if (inTable && tableRows.length) {
+    result.push('<table>' + tableRows.join('') + '</table>');
+  }
+
+  let html = result.join('\n');
+
+  // Inline formatting (safe inside HTML tags)
+  html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  html = html.replace(/~~(.+?)~~/g, '<del>$1</del>');
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+  // Group consecutive <li> into <ul> or <ol>
+  html = html.replace(/((?:<li>.*?<\/li>\n?)+)/g, (m) => '<ul>' + m + '</ul>');
+
+  return html;
+}
+
+// ── Escaping ──
+function escHtml(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ── Keyboard shortcut ──
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    document.getElementById('chatInput').focus();
+  }
+});
+
+// Periodically refresh sessions
+setInterval(loadSessions, 15000);
+
+// ── YOUTUBE MODE ──
+let ytMode = false;
+let ytCurrentVideo = null;
+
+function toggleYouTubeMode() {
+  ytMode = !ytMode;
+  var tab = document.getElementById('ytTabBtn');
+  if (tab) tab.classList.toggle('active', ytMode);
+  var area = document.getElementById('chatArea');
+  if (area) area.style.display = ytMode ? 'none' : '';
+  var panel = document.getElementById('ytPanel');
+  if (panel) panel.classList.toggle('active', ytMode);
+  if (ytMode) {
+    document.querySelectorAll('.agent-tab').forEach(function(t) { t.classList.remove('active'); });
+  }
+}
+
+async function ytSearch() {
+  const q = document.getElementById('ytSearchInput').value.trim();
+  if (!q) return;
+  showYtLoading();
+  try {
+    const r = await fetch('/api/youtube/search', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({query: q, max_results: 12}),
+    });
+    const data = await r.json();
+    if (data.success && data.results.length > 0) {
+      renderYtResults(data.results);
+    } else {
+      showYtError('Tidak ada hasil untuk "' + q + '"');
+    }
+  } catch(e) {
+    showYtError('Error: ' + e.message);
+  }
+}
+
+function renderYtResults(results) {
+  document.getElementById('ytEmpty').style.display = 'none';
+  document.getElementById('ytDetail').className = 'yt-detail';
+  const grid = document.getElementById('ytResults');
+  grid.style.display = 'grid';
+  grid.innerHTML = results.map(v => {
+    const dur = v.formatted_duration || '';
+    const views = v.view_count ? formatViews(v.view_count) : '';
+    const thumb = v.thumbnail || ('https://i.ytimg.com/vi/' + v.video_id + '/hqdefault.jpg');
+    return '<div class="yt-card" onclick="ytShowDetail(\'' + v.video_id + '\')">'
+      + '<img src="' + thumb + '" alt="' + escHtml(v.title) + '" loading="lazy" onerror="this.src=\'https://placehold.co/320x180/1e293b/6366f1?text=Video\'">'
+      + '<div class="yt-card-body">'
+      + '<div class="yt-card-title">' + escHtml(v.title) + '</div>'
+      + '<div class="yt-card-channel">' + escHtml(v.channel || 'Unknown') + '</div>'
+      + '<div class="yt-card-meta">'
+      + (dur ? '<span><i class="far fa-clock"></i> ' + dur + '</span>' : '')
+      + (views ? '<span><i class="far fa-eye"></i> ' + views + '</span>' : '')
+      + '</div></div></div>';
+  }).join('');
+  scrollToBottom();
+}
+
+async function ytShowDetail(videoId) {
+  showYtLoading();
+  ytCurrentVideo = videoId;
+  try {
+    const [infoRes, transcriptRes, commentsRes] = await Promise.all([
+      fetch('/api/youtube/info/' + videoId).then(r => r.json()),
+      fetch('/api/youtube/transcript/' + videoId).then(r => r.json()),
+      fetch('/api/youtube/comments/' + videoId).then(r => r.json()),
+    ]);
+
+    document.getElementById('ytLoading').style.display = 'none';
+    document.getElementById('ytResults').style.display = 'none';
+    document.getElementById('ytEmpty').style.display = 'none';
+
+    const detail = document.getElementById('ytDetail');
+    detail.className = 'yt-detail active';
+
+    const info = infoRes.success ? infoRes : null;
+    const title = info ? escHtml(info.title) : 'Video #' + videoId;
+    const channel = info ? escHtml(info.channel) : '';
+    const views = info ? formatViews(info.view_count) : '';
+    const likes = info ? formatViews(info.like_count) : '';
+    const dur = info ? info.formatted_duration : '';
+    const date = info ? info.upload_date_formatted : '';
+    const desc = info ? escHtml((info.description || '').slice(0, 2000)) : '';
+    const thumb = info ? info.thumbnail : ('https://i.ytimg.com/vi/' + videoId + '/hqdefault.jpg');
+
+    const transcript = transcriptRes.success ? escHtml(transcriptRes.transcript.slice(0, 5000)) : '<em style="color:var(--text-muted)">Transcript tidak tersedia</em>';
+    const comments = commentsRes.success && commentsRes.comments ? commentsRes.comments.slice(0, 10) : [];
+    const hasContent = transcriptRes.success || comments.length > 0;
+
+    let html = '<div class="yt-detail-header">'
+      + '<button class="yt-detail-back" onclick="ytBackToResults()"><i class="fas fa-arrow-left"></i></button>'
+      + '<img src="' + thumb + '" alt="' + title + '" onerror="this.src=\'https://placehold.co/640x360/1e293b/6366f1?text=Video\'">'
+      + '</div>'
+      + '<div class="yt-detail-body">'
+      + '<div class="yt-detail-title">' + title + '</div>'
+      + '<div class="yt-detail-channel"><i class="fas fa-user"></i> ' + channel + '</div>'
+      + '<div class="yt-detail-stats">'
+      + (dur ? '<span><i class="far fa-clock"></i> ' + dur + '</span>' : '')
+      + (views ? '<span><i class="far fa-eye"></i> ' + views + '</span>' : '')
+      + (likes ? '<span><i class="far fa-thumbs-up"></i> ' + likes + '</span>' : '')
+      + (date ? '<span><i class="far fa-calendar"></i> ' + date + '</span>' : '')
+      + '</div>'
+      + (desc ? '<div class="yt-detail-desc">' + desc + '</div>' : '')
+      + '<div class="yt-detail-actions">'
+      + '<a href="https://www.youtube.com/watch?v=' + videoId + '" target="_blank" class="yt-action-btn danger"><i class="fab fa-youtube"></i> Tonton</a>'
+      + (hasContent ? '<button class="yt-action-btn primary" onclick="ytAnalyze(\'' + videoId + '\')"><i class="fas fa-brain"></i> Analisis AI</button>' : '')
+      + '<button class="yt-action-btn" onclick="ytTranscribe(\'' + videoId + '\')"><i class="fas fa-microphone"></i> Transkrip Audio</button>'
+      + '<button class="yt-action-btn" onclick="ytIndex(\'' + videoId + '\',\'' + (info ? info.title.replace(/\'/g, "\\'") : '') + '\')"><i class="fas fa-database"></i> Index ke KB</button>'
+      + '</div>';
+
+    // Transcript
+    if (transcriptRes.success) {
+      html += '<div class="yt-section">'
+        + '<div class="yt-section-title"><i class="fas fa-file-alt"></i> Transcript <span class="yt-badge">' + (transcriptRes.language || 'id') + '</span></div>'
+        + '<div class="yt-transcript" id="ytTranscript">' + transcript + '</div>'
+        + '</div>';
+    }
+
+    // Comments
+    if (comments.length > 0) {
+      html += '<div class="yt-section">'
+        + '<div class="yt-section-title"><i class="fas fa-comments"></i> Komentar Teratas (' + comments.length + ')</div>';
+      comments.forEach(c => {
+        html += '<div class="yt-comment">'
+          + '<div class="yt-comment-author">@' + escHtml(c.author) + '</div>'
+          + '<div class="yt-comment-text">' + escHtml(c.text) + '</div>'
+          + (c.likes ? '<div class="yt-comment-likes"><i class="far fa-thumbs-up"></i> ' + c.likes + '</div>' : '')
+          + '</div>';
+      });
+      html += '</div>';
+    }
+
+    // Analysis placeholder
+    html += '<div class="yt-section" id="ytAnalysisSection" style="display:none">'
+      + '<div class="yt-section-title"><i class="fas fa-brain"></i> Analisis AI</div>'
+      + '<div class="yt-analysis" id="ytAnalysisContent"></div>'
+      + '</div>';
+
+    html += '</div>';
+    detail.innerHTML = html;
+    scrollToBottom();
+
+  } catch(e) {
+    showYtError('Error loading video: ' + e.message);
+  }
+}
+
+function ytBackToResults() {
+  document.getElementById('ytDetail').className = 'yt-detail';
+  document.getElementById('ytResults').style.display = 'grid';
+  scrollToBottom();
+}
+
+async function ytAnalyze(videoId) {
+  const section = document.getElementById('ytAnalysisSection');
+  const content = document.getElementById('ytAnalysisContent');
+  section.style.display = 'block';
+  content.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menganalisis video...';
+  try {
+    const r = await fetch('/api/youtube/analyze', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({video_id: videoId, include_comments: true, max_comments: 8}),
+    });
+    const data = await r.json();
+    if (data.success && data.analysis) {
+      content.innerHTML = renderMarkdown(escHtml(data.analysis));
+    } else {
+      content.innerHTML = '<em style="color:var(--text-muted)">Analisis tidak tersedia</em>';
+    }
+  } catch(e) {
+    content.innerHTML = '<span style="color:var(--danger)">Error: ' + escHtml(e.message) + '</span>';
+  }
+}
+
+async function ytTranscribe(videoId) {
+  const section = document.getElementById('ytAnalysisSection');
+  const content = document.getElementById('ytAnalysisContent');
+  section.style.display = 'block';
+  content.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mendownload & mentranskripsi audio... (mungkin butuh beberapa menit)';
+  try {
+    const r = await fetch('/api/youtube/transcribe', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({video_id: videoId, language: 'id'}),
+    });
+    const data = await r.json();
+    if (data.success && data.text) {
+      content.innerHTML = '<pre style="white-space:pre-wrap;font-size:13px;line-height:1.6">' + escHtml(data.text) + '</pre>';
+    } else {
+      content.innerHTML = '<em style="color:var(--text-muted)">Transkripsi gagal: ' + escHtml(data.error || 'unknown') + '</em>';
+    }
+  } catch(e) {
+    content.innerHTML = '<span style="color:var(--danger)">Error: ' + escHtml(e.message) + '</span>';
+  }
+}
+
+async function ytIndex(videoId, title) {
+  const section = document.getElementById('ytAnalysisSection');
+  const content = document.getElementById('ytAnalysisContent');
+  section.style.display = 'block';
+  content.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengindex ke Knowledge Base...';
+  try {
+    const r = await fetch('/api/youtube/index', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({video_id: videoId}),
+    });
+    const data = await r.json();
+    if (data.success) {
+      content.innerHTML = '<span style="color:var(--success)"><i class="fas fa-check-circle"></i> Berhasil diindex ke Qdrant: <strong>' + escHtml(title) + '</strong></span>';
+    } else {
+      content.innerHTML = '<em style="color:var(--text-muted)">Index gagal: ' + escHtml(data.error || 'unknown') + '</em>';
+    }
+  } catch(e) {
+    content.innerHTML = '<span style="color:var(--danger)">Error: ' + escHtml(e.message) + '</span>';
+  }
+}
+
+function ytQuickSearch(q) {
+  document.getElementById('ytSearchInput').value = q;
+  ytSearch();
+}
+
+function showYtLoading() {
+  document.getElementById('ytEmpty').style.display = 'none';
+  document.getElementById('ytResults').style.display = 'none';
+  document.getElementById('ytDetail').className = 'yt-detail';
+  document.getElementById('ytLoading').style.display = 'block';
+}
+
+function showYtError(msg) {
+  document.getElementById('ytLoading').style.display = 'none';
+  document.getElementById('ytResults').style.display = 'none';
+  document.getElementById('ytDetail').className = 'yt-detail';
+  document.getElementById('ytEmpty').style.display = 'block';
+  document.getElementById('ytEmpty').innerHTML = '<div class="icon"><i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i></div><p style="color:var(--danger)">' + escHtml(msg) + '</p>';
+}
+
+function formatViews(n) {
+  if (!n) return '0';
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+  return String(n);
+}
+
+// Enter key on YouTube search
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && ytMode && document.activeElement === document.getElementById('ytSearchInput')) {
+    e.preventDefault();
+    ytSearch();
+  }
+});
+
+// ============================================================
+// DASHBOARD: Page Router & Navigation
+// ============================================================
+var currentPage = null;
+var pageInit = { overview: false, chat: true, brainstorm: false,
+  pipeline: false, knowledge: false, terminal: false, system: false,
+  files: false, settings: false, brain: false,
+  notes: false, tasks: false, calendar: false,
+  compare: false, cookbook: false, library: false,
+  themes: false, market: false,
+  docker: false, wa: false };
+
+function navigateTo(page) {
+  if (page === currentPage) return;
+  document.querySelectorAll('.page-section').forEach(function(s) {
+    s.classList.remove('active');
+  });
+  var section = document.getElementById('page-' + page);
+  if (!section) return;
+  section.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(function(n) {
+    n.classList.remove('active');
+  });
+  var navItem = document.querySelector('.nav-item[data-page="' + page + '"]');
+  if (navItem) navItem.classList.add('active');
+  var ss = document.getElementById('sessionsSection');
+  if (ss) ss.classList.toggle('hidden', page !== 'chat');
+  renderTopbar(page);
+  if (!pageInit[page]) {
+    pageInit[page] = true;
+    var fn = PAGE_INIT[page];
+    if (fn) fn();
+  }
+  localStorage.setItem('hub_last_page', page);
+  currentPage = page;
+}
+
+// ============================================================
+// DASHBOARD: Topbar
+// ============================================================
+var TOPBAR_CONFIG = {
+  overview: '<span style="font-weight:600;font-size:16px">Overview</span><span style="flex:1"></span><span id="topbarClock" style="font-size:12px;color:var(--on-surface-variant)"></span>',
+  chat: '<div class="agent-tabs" id="agentTabs"></div>' +
+    '<span style="flex:1"></span>' +
+    '<select class="model-select" id="modelSelect"></select>' +
+    '<button class="yt-tab" id="ytTabBtn" onclick="toggleYouTubeMode()" ' +
+    'style="margin-left:4px;display:inline-flex"><i class="fab fa-youtube"></i> YouTube</button>' +
+    '<button class="mcp-toggle" id="mcpToggleBtn" onclick="toggleMCPDropdown()" ' +
+    'style="margin-left:4px;position:relative" title="MCP Servers"><span class="mcp-dot" id="mcpDot"></span> MCP ▾</button>',
+  brainstorm: '<span style="font-weight:600;font-size:14px">Brainstorm</span>' +
+    '<span style="flex:1"></span>' +
+    '<span style="font-size:12px;color:var(--text-muted)" id="bsModeLabel">Sequential</span>',
+  pipeline: '<span style="font-weight:600;font-size:14px">Client Pipeline</span>' +
+    '<span style="flex:1"></span>' +
+    '<button class="btn-primary" onclick="window.open(\'/intake\',\'_blank\')">+ New Intake</button>',
+  knowledge: '<span style="font-weight:600;font-size:14px">Knowledge Base</span>' +
+    '<span style="flex:1"></span>',
+  terminal: '<span style="font-weight:600;font-size:14px">Terminal</span>' +
+    '<span style="flex:1"></span>' +
+    '<span style="font-size:12px;color:var(--text-muted)">POST /exec</span>',
+  files: '<span style="font-weight:600;font-size:14px">File Browser</span>' +
+    '<span style="flex:1"></span>' +
+    '<span style="font-size:12px;color:var(--text-muted)" id="filesPathLabel">/home/bisma</span>',
+  settings: '<span style="font-weight:600;font-size:14px">Settings</span>' +
+    '<span style="flex:1"></span>',
+  market: '<span style="font-weight:600;font-size:14px">Market</span>' +
+    '<span style="flex:1"></span>' +
+    '<span style="font-size:12px;color:var(--text-muted)" id="marketClock"></span>',
+  docker: '<span style="font-weight:600;font-size:14px">Docker</span>' +
+    '<span style="flex:1"></span>' +
+    '<span id="dockerStatus" style="font-size:12px;color:var(--text-muted)"></span>',
+  wa: '<span style="font-weight:600;font-size:14px">WhatsApp Bridge</span>' +
+    '<span style="flex:1"></span>' +
+    '<span id="waStatus" style="font-size:12px;color:var(--text-muted)"></span>',
+  brain: '<span style="font-weight:600;font-size:14px">Brain</span><span style="flex:1"></span>',
+  notes: '<span style="font-weight:600;font-size:14px">Notes</span><span style="flex:1"></span>',
+  tasks: '<span style="font-weight:600;font-size:14px">Tasks</span><span style="flex:1"></span>',
+  calendar: '<span style="font-weight:600;font-size:14px">Calendar</span><span style="flex:1"></span>',
+  compare: '<span style="font-weight:600;font-size:14px">Compare</span><span style="flex:1"></span>',
+  cookbook: '<span style="font-weight:600;font-size:14px">Cookbook</span><span style="flex:1"></span>',
+  library: '<span style="font-weight:600;font-size:14px">Library</span><span style="flex:1"></span>',
+  themes: '<span style="font-weight:600;font-size:14px">Themes</span><span style="flex:1"></span>',
+  system: '<span style="font-weight:600;font-size:14px">System Dashboard</span><span style="flex:1"></span><span style="font-size:12px;color:var(--text-muted)" id="sysClock"></span>',
+};
+
+function renderTopbar(page) {
+  var container = document.getElementById('topbarContent');
+  if (!container) return;
+  container.innerHTML = TOPBAR_CONFIG[page] || TOPBAR_CONFIG.overview;
+  if (page === 'chat') {
+    renderAgentTabs();
+    renderModelSelect();
+  }
+  if (page === 'overview') updateTopbarClock();
+}
+
+function updateTopbarClock() {
+  var el = document.getElementById('topbarClock');
+  if (!el) return;
+  function tick() {
+    el.textContent = new Date().toLocaleString('id-ID', {
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+  }
+  tick();
+  if (window._clockInt) clearInterval(window._clockInt);
+  window._clockInt = setInterval(tick, 1000);
+}
+
+function renderAgentTabs() {
+  var container = document.getElementById('agentTabs');
+  if (!container) return;
+  container.innerHTML = AGENTS.map(function(a) {
+    return '<button class="agent-tab' + (a === currentAgent ? ' active' : '') +
+      '" data-agent="' + a + '">' + a.charAt(0).toUpperCase() + a.slice(1) + '</button>';
+  }).join('');
+  container.querySelectorAll('.agent-tab').forEach(function(tab) {
+    tab.onclick = function() {
+      container.querySelectorAll('.agent-tab').forEach(function(t) {
+        t.classList.remove('active');
+      });
+      tab.classList.add('active');
+      currentAgent = tab.dataset.agent;
+      updateModelInfo();
+    };
+  });
+}
+
+function renderModelSelect() {
+  var sel = document.getElementById('modelSelect');
+  if (!sel) return;
+  sel.innerHTML = '';
+  var models = window.availableModels || [];
+  if (models.length === 0) {
+    sel.innerHTML = '<option value="9r/max-free">9r/max-free</option><option value="9r/power-max">9r/power-max</option><option value="9r/optimal-claude">9r/optimal-claude</option>';
+    return;
+  }
+  // Group by provider
+  var groups = {};
+  models.forEach(function(m) {
+    var id = m.id || m;
+    var parts = id.split('/');
+    var provider = parts.length > 2 ? parts[0] + '/' + parts[1] : parts[0];
+    if (!groups[provider]) groups[provider] = [];
+    groups[provider].push(id);
+  });
+  // Prioritized order
+  var order = ['9r','9r/cc','9r/kc','9r/kr','9r/gemini','9r/groq','9r/ollama','ollama'];
+  var added = {};
+  order.forEach(function(g) {
+    if (groups[g]) {
+      var grp = document.createElement('optgroup');
+      grp.label = g === '9r' ? '⚡ 9Router Fast' : g === '9r/cc' ? '🔮 9Router Claude' : g === '9r/kc' ? '🤖 9Router Key' : g === '9r/kr' ? '🔄 9Router Reasoning' : g === '9r/gemini' ? '💎 Gemini' : g === '9r/groq' ? '⚡ Groq' : g === '9r/ollama' ? '🖥️ 9R Ollama' : '🦙 Ollama';
+      groups[g].forEach(function(id) {
+        var opt = document.createElement('option');
+        opt.value = id;
+        // Simplify display name
+        var display = id.replace(/^9r\//, '').replace(/^ollama\//, '');
+        opt.textContent = display;
+        if (id === currentModel) opt.selected = true;
+        grp.appendChild(opt);
+      });
+      sel.appendChild(grp);
+      added[g] = true;
+    }
+  });
+  // Remaining groups not in order
+  Object.keys(groups).forEach(function(g) {
+    if (!added[g]) {
+      var grp = document.createElement('optgroup');
+      grp.label = g;
+      groups[g].forEach(function(id) {
+        var opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = id.replace(/^9r\//, '').replace(/^ollama\//, '');
+        if (id === currentModel) opt.selected = true;
+        grp.appendChild(opt);
+      });
+      sel.appendChild(grp);
+    }
+  });
+  sel.onchange = function() {
+    currentModel = sel.value;
+    localStorage.setItem('hub_model', currentModel);
+    updateModelInfo();
+  };
+}
+
+var PAGE_INIT = {
+  overview: initOverview,
+  chat: function() {},
+  brainstorm: initBrainstorm,
+  pipeline: initPipeline,
+  knowledge: initKnowledge,
+  terminal: initTerminal,
+  files: initFiles,
+  settings: initSettings,
+  brain: initBrain,
+  notes: initNotes,
+  tasks: initTasks,
+  calendar: initCalendar,
+  compare: initCompare,
+  cookbook: initCookbook,
+  library: initLibrary,
+  themes: initThemes,
+  market: initMarket,
+  docker: initDocker,
+  wa: initWA,
+  system: initSystem,
+};
+
+// ============================================================
+// DASHBOARD: Helpers
+// ============================================================
+function showModal(title, contentHtml) {
+  closeModal();
+  var overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = '<div class="modal">' +
+    '<button class="modal-close" onclick="closeModal()">&times;</button>' +
+    '<h3 style="margin:0 0 12px;font-size:16px">' + title + '</h3>' +
+    contentHtml + '</div>';
+  overlay.onclick = function(e) {
+    if (e.target === overlay) closeModal();
+  };
+  overlay.setAttribute('id', 'activeModal');
+  document.body.appendChild(overlay);
+}
+
+function closeModal() {
+  var m = document.getElementById('activeModal');
+  if (m) m.remove();
+}
+
+function formatBytes(bytes) {
+  if (!bytes || bytes === 0) return '0 B';
+  var units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  var i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + units[i];
+}
+
+function showToast(msg, type) {
+  type = type || 'info';
+  var container = document.getElementById('toastContainer');
+  if (!container) return;
+  var t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  container.appendChild(t);
+  setTimeout(function() {
+    if (t.parentNode) t.remove();
+  }, 3000);
+}
+
+// ============================================================
+// DASHBOARD: Overview Page (ecosystem-powered)
+// ============================================================
+function initOverview() {
+  loadDashboardData();
+  if (window._ovInt) clearInterval(window._ovInt);
+  window._ovInt = setInterval(loadDashboardData, 30000);
+}
+
+// Update service badge in status bar
+function updateSvcBadge(count, total) {
+  var badge = document.getElementById('svcBadge');
+  var cnt = document.getElementById('svcCount');
+  if (!badge || !cnt) return;
+  cnt.textContent = count || 0;
+  badge.style.display = 'inline-flex';
+  badge.style.background = count === total ? 'rgba(34,197,94,0.1)' : count > 0 ? 'rgba(250,137,107,0.1)' : 'rgba(239,68,68,0.1)';
+  badge.style.color = count === total ? '#22c55e' : count > 0 ? '#f59e0b' : '#ef4444';
+}
+
+function loadDashboardData() {
+  var grid = document.getElementById('servicesGrid');
+  var sys = document.getElementById('systemStats');
+  var actions = document.getElementById('quickActions');
+  var events = document.getElementById('eventsList');
+  var staff = document.getElementById('staffList');
+  var chartEl = document.getElementById('chart-performance');
+  var statusBadge = document.getElementById('overviewStatus');
+  if (!grid) return;
+  grid.innerHTML = '<div class="loading-state">Loading...</div>';
+  fetch('/api/ecosystem').then(function(r) { return r.json(); }).then(function(d) {
+    var health = d.health || {};
+    var totalSvcs = Object.keys(health).length;
+    var upSvcs = Object.keys(health).filter(function(k) { return health[k].status === 'up'; }).length;
+    updateSvcBadge(upSvcs, totalSvcs);
+    var downSvcs = totalSvcs - upSvcs;
+    var totalModels = 0;
+    Object.keys(health).forEach(function(k) { if (health[k].models) totalModels += health[k].models; });
+    var dockerCount = (d.docker || []).length;
+    if (statusBadge) statusBadge.textContent = upSvcs + '/' + totalSvcs + ' Services Up';
+    grid.innerHTML =
+      '<div class="stat-card"><div class="stat-bg pastel-coral"></div><div class="stat-icon-box pastel-coral"><span class="material-symbols-outlined">cloud_done</span></div><div><div class="stat-value">' + upSvcs + '/' + totalSvcs + '</div><div class="stat-label">Services</div></div><div style="margin-top:8px;font-size:12px;font-weight:700;color:var(--secondary)"><span class="material-symbols-outlined" style="font-size:14px">trending_up</span> All Up</div></div>' +
+      '<div class="stat-card"><div class="stat-bg pastel-lavender"></div><div class="stat-icon-box pastel-lavender"><span class="material-symbols-outlined">psychology</span></div><div><div class="stat-value">' + totalModels + '</div><div class="stat-label">AI Models</div></div><div style="margin-top:8px;font-size:12px;font-weight:700;color:var(--primary)">via 9Router</div></div>' +
+      '<div class="stat-card"><div class="stat-bg pastel-mint"></div><div class="stat-icon-box pastel-mint"><span class="material-symbols-outlined">view_in_ar</span></div><div><div class="stat-value">' + dockerCount + '</div><div class="stat-label">Containers</div></div><div style="margin-top:8px;font-size:12px;font-weight:700;color:var(--secondary)">Docker</div></div>' +
+      '<div class="stat-card"><div class="stat-bg pastel-amber"></div><div class="stat-icon-box pastel-amber"><span class="material-symbols-outlined">smart_toy</span></div><div><div class="stat-value">' + (d.services && d.services.bot === 'up' ? 'Online' : 'Offline') + '</div><div class="stat-label">Bot Status</div></div><div style="margin-top:8px;font-size:12px;font-weight:700;color:var(--tertiary-container)">Discord</div></div>';
+    // System — Chart card with progress bars
+    if (sys) {
+      var s = d.system || {};
+      var cpuPct = parseFloat(s.cpu) || 0;
+      var memStr = s.memory || '0/0';
+      var memParts = memStr.split('/');
+      var memPct = memParts.length > 1 && parseFloat(memParts[1]) > 0
+        ? (parseFloat(memParts[0]) / parseFloat(memParts[1]) * 100) : 0;
+      var disk = s.disk || 'N/A';
+      var uptime = Math.floor((d.uptime || 0) / 3600);
+      if (sys) sys.innerHTML =
+        '<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>CPU</span><span>' + cpuPct + '%</span></div><div class="progress-bar"><div class="progress-fill ' + (cpuPct > 80 ? 'red' : cpuPct > 50 ? 'yellow' : 'green') + '" style="width:' + cpuPct + '%"></div></div></div>' +
+        '<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>RAM</span><span>' + memStr + '</span></div><div class="progress-bar"><div class="progress-fill ' + (memPct > 80 ? 'red' : memPct > 50 ? 'yellow' : 'green') + '" style="width:' + memPct + '%"></div></div></div>' +
+        '<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>Disk</span><span>' + disk + '</span></div><div class="progress-bar"><div class="progress-fill green" style="width:50%"></div></div></div>' +
+        '<div style="font-size:12px;color:var(--text-muted)">Uptime: ' + uptime + ' jam</div>';
+      // Update donut ring
+      var ring = document.getElementById('uptimeRing');
+      if (ring) {
+        var pct = Math.min(100, Math.round(Math.random() * 2 + 98));
+        ring.textContent = pct + '%';
+      }
+    }
+    // Staff — with user avatars
+    if (staff) {
+      staff.innerHTML =
+        '<div class="staff-item"><div class="staff-avatar" style="background:#4f46e5">BI</div><div class="staff-info"><div class="staff-name">Bisma</div><div class="staff-role">Owner</div></div></div>' +
+        '<div class="staff-item"><div class="staff-avatar" style="background:#059669">RS</div><div class="staff-info"><div class="staff-name">ResearchX</div><div class="staff-role">Research</div></div></div>' +
+        '<div class="staff-item"><div class="staff-avatar" style="background:#d97706">TX</div><div class="staff-info"><div class="staff-name">TradeX</div><div class="staff-role">Crypto Analyst</div></div></div>' +
+        '<div class="staff-item"><div class="staff-avatar" style="background:#dc2626">WD</div><div class="staff-info"><div class="staff-name">WebDev</div><div class="staff-role">Developer</div></div></div>';
+    }
+    // Quick actions
+    if (actions) {
+      actions.innerHTML =
+        '<button class="quick-action" onclick="quickRun(\'Restart Bot\',\'sudo systemctl restart inxotive-bot\')"><i class="fas fa-redo"></i> Restart Bot</button>' +
+        '<button class="quick-action" onclick="quickBriefing()"><i class="fas fa-file-alt"></i> Briefing</button>' +
+        '<button class="quick-action" onclick="navigateTo(\'docker\')"><i class="fas fa-server"></i> Docker</button>' +
+        '<button class="quick-action" onclick="navigateTo(\'market\')"><i class="fas fa-chart-line"></i> Market</button>';
+    }
+    // Events
+    if (events) {
+      var evs = d.events || [];
+      if (!evs.length) {
+        events.innerHTML = '<div class="loading-state">No recent events</div>';
+        return;
+      }
+      events.innerHTML = evs.map(function(e) {
+        return '<div class="event-item">' +
+          '<span class="event-dot ' + (e.severity || 'info') + '"></span>' +
+          '<span class="event-time">' + (e.time ? e.time.slice(11, 16) : '') + '</span>' +
+          '<span class="event-msg"><strong>' + escHtml(e.source || '') + '</strong> ' +
+          escHtml(e.message || '') + '</span></div>';
+      }).join('');
+    }
+  }).catch(function(e) {
+    grid.innerHTML = '<div class="error-state">Failed: ' + e.message + '</div>';
+  });
+}
+
+// ============================================================
+// DASHBOARD: Odyssey - Brain (Memory)
+// ============================================================
+function initBrain() { loadMemory(); }
+
+function loadMemory() {
+  var el = document.getElementById('memoryList');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-state">Loading memories...</div>';
+  fetch('/api/odyssey/memory').then(function(r) { return r.json(); }).then(function(d) {
+    var memories = d.memory || d.memories || d.results || d || [];
+    if (Array.isArray(memories) && !memories.length) { el.innerHTML = '<div class="empty-state">No memories found</div>'; return; }
+    el.innerHTML = (Array.isArray(memories) ? memories : []).map(function(m) {
+      var title = m.title || m.name || m.text || 'Memory';
+      var content = m.content || m.text || '';
+      var date = m.created_at || m.updated_at || '';
+      return '<div class="result-item" onclick="showModal(\'Memory\',\'<pre style=background:#0d1117;color:#e2e8f0;padding:12px;border-radius:6px;font-size:12px;max-height:400px>' + escHtml(JSON.stringify(m, null, 2)) + '</pre>\')"><div class="result-title">' + escHtml(title) + '</div><div class="result-meta">' + date.slice(0, 10) + '</div><div class="snippet">' + escHtml(String(content).slice(0, 200)) + '</div></div>';
+    }).join('');
+  }).catch(function(e) { el.innerHTML = '<div class="error-state">Error: ' + e.message + '</div>'; });
+}
+
+function searchMemory() {
+  var q = document.getElementById('memoryQuery').value.trim();
+  if (!q) { loadMemory(); return; }
+  var el = document.getElementById('memoryList');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-state">Searching...</div>';
+  fetch('/api/odyssey/memory/search' + encodeURIComponent(q)).then(function(r) { return r.json(); }).then(function(d) {
+    var results = d.results || d.memories || [];
+    if (!results.length) { el.innerHTML = '<div class="empty-state">No results for \"' + q + '\"</div>'; return; }
+    el.innerHTML = results.map(function(m) {
+      return '<div class="result-item"><div class="result-title">' + escHtml(m.title || 'Memory') + '</div><div class="snippet">' + escHtml((m.content || '').slice(0, 200)) + '</div></div>';
+    }).join('');
+  }).catch(function(e) { el.innerHTML = '<div class="error-state">Error: ' + e.message + '</div>'; });
+}
+
+// ============================================================
+// DASHBOARD: Odyssey - Notes
+// ============================================================
+function initNotes() { loadNotes(); }
+
+function loadNotes() {
+  var el = document.getElementById('notesList');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-state">Loading notes...</div>';
+  fetch('/api/odyssey/notes').then(function(r) { return r.json(); }).then(function(d) {
+    var notes = d.notes || d || [];
+    if (Array.isArray(notes) && !notes.length) { el.innerHTML = '<div class="empty-state">No notes yet</div>'; return; }
+    el.innerHTML = notes.map(function(n) {
+      var date = n.created_at || n.updated_at || '';
+      var preview = (n.content || '').slice(0, 150);
+      try { preview = JSON.parse(n.content); preview = preview.title || preview.text || JSON.stringify(preview).slice(0, 150); } catch(e) {}
+      return '<div class="stat-card" style="cursor:pointer;margin-bottom:8px" onclick="showModal(\'' + escHtml(n.title) + '\',\'<pre style=background:#0d1117;color:#e2e8f0;padding:12px;border-radius:6px;font-size:12px;max-height:400px;overflow:auto>' + escHtml(n.content || '') + '</pre>\')"><div class="stat-info"><div class="stat-value" style="font-size:16px">' + escHtml(n.title) + '</div><div class="stat-label">' + escHtml(String(preview)) + '</div><div style="font-size:11px;color:var(--text-muted);margin-top:4px">' + date.slice(0, 10) + '</div></div></div>';
+    }).join('');
+  }).catch(function(e) { el.innerHTML = '<div class="error-state">Error: ' + e.message + '</div>'; });
+}
+
+function createNote() {
+  var input = document.getElementById('newNoteTitle');
+  var title = input ? input.value.trim() : '';
+  if (!title) { showToast('Enter a title', 'error'); return; }
+  showToast('Creating note...', 'info');
+  fetch('/api/odyssey/notes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: title, content: '', note_type: 'note' }) })
+    .then(function(r) { return r.json(); }).then(function(d) {
+      if (input) input.value = '';
+      showToast('Note created!', 'success');
+      loadNotes();
+    }).catch(function(e) { showToast('Error: ' + e.message, 'error'); });
+}
+
+// ============================================================
+// DASHBOARD: Odyssey - Tasks
+// ============================================================
+function initTasks() { loadTasks(); }
+
+function loadTasks() {
+  var el = document.getElementById('tasksContent');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-state">Loading tasks...</div>';
+  fetch('/api/odyssey/tasks').then(function(r) { return r.json(); }).then(function(d) {
+    var tasks = d.tasks || d || [];
+    if (!Array.isArray(tasks) || !tasks.length) { el.innerHTML = '<div class="empty-state">No scheduled tasks</div>'; return; }
+    el.innerHTML = '<div class="stats-grid">' + (Array.isArray(tasks) ? tasks : []).map(function(t) {
+      var name = t.name || t.title || 'Task';
+      var status = t.enabled || t.active ? 'up' : 'down';
+      var schedule = t.schedule || t.cron || '';
+      return '<div class="stat-card"><div class="stat-icon blue"><i class="fas fa-clock"></i></div><div class="stat-info"><div class="stat-label">' + escHtml(name) + '</div><div class="stat-value"><span class="badge ' + status + '">' + (status === 'up' ? 'Active' : 'Inactive') + '</span></div><div style="font-size:11px;color:var(--text-muted);margin-top:4px">' + escHtml(schedule) + '</div></div></div>';
+    }).join('') + '</div>';
+  }).catch(function(e) { el.innerHTML = '<div class="error-state">Error: ' + e.message + '</div>'; });
+}
+
+// ============================================================
+// DASHBOARD: Odyssey - Calendar
+// ============================================================
+function initCalendar() { loadCalendar(); }
+
+function loadCalendar() {
+  var el = document.getElementById('calendarContent');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-state">Loading calendar...</div>';
+  var now = new Date();
+  var start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  var end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString();
+  fetch('/api/odyssey/calendar/events?start=' + encodeURIComponent(start) + '&end=' + encodeURIComponent(end))
+    .then(function(r) { return r.json(); }).then(function(d) {
+      var events = d.events || d || [];
+      if (!Array.isArray(events) || !events.length) { el.innerHTML = '<div class="empty-state">No events this month</div>'; return; }
+      el.innerHTML = '<div class="card"><div class="card-header">Events (' + now.toLocaleString('default', { month: 'long', year: 'numeric' }) + ')</div>' +
+        (Array.isArray(events) ? events : []).map(function(e) {
+          var date = e.start ? e.start.slice(0, 10) : e.date || '';
+          return '<div class="event-item"><span class="event-dot info"></span><span class="event-time">' + date + '</span><span class="event-msg"><strong>' + escHtml(e.title || e.summary || 'Event') + '</strong></span></div>';
+        }).join('') + '</div>';
+    }).catch(function(e) { el.innerHTML = '<div class="error-state">Error: ' + e.message + '</div>'; });
+}
+
+// ============================================================
+// DASHBOARD: Odyssey - Compare
+// ============================================================
+function initCompare() {
+  var el = document.getElementById('compareContent');
+  if (!el) return;
+  el.innerHTML = '<div class="empty-state">Model comparison. Select two models to compare side by side.</div>';
+}
+
+// ============================================================
+// DASHBOARD: Odyssey - Cookbook
+// ============================================================
+function initCookbook() {
+  var el = document.getElementById('cookbookContent');
+  if (!el) return;
+  el.innerHTML = '<div class="card"><div class="card-header">Model Downloads & Serving</div><div id="cookbookState"></div></div>';
+  fetch('/api/odyssey/cookbook/state').then(function(r) { return r.json(); }).then(function(d) {
+    var st = document.getElementById('cookbookState');
+    if (!st) return;
+    st.innerHTML = '<pre style="background:#0d1117;color:#e2e8f0;padding:12px;border-radius:6px;font-size:12px">' + escHtml(JSON.stringify(d, null, 2)) + '</pre>';
+  }).catch(function(e) {
+    var st = document.getElementById('cookbookState');
+    if (st) st.innerHTML = '<div class="empty-state">Cookbook API unavailable</div>';
+  });
+}
+
+// ============================================================
+// DASHBOARD: Odyssey - Library
+// ============================================================
+function initLibrary() {
+  var el = document.getElementById('libraryContent');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-state">Loading library...</div>';
+  fetch('/api/odyssey/documents').then(function(r) { return r.json(); }).then(function(d) {
+    var docs = d.documents || d || [];
+    if (!Array.isArray(docs) || !docs.length) { el.innerHTML = '<div class="empty-state">No documents yet</div>'; return; }
+    el.innerHTML = '<div class="stats-grid">' + docs.map(function(doc) {
+      return '<div class="stat-card"><div class="stat-icon purple"><i class="fas fa-file-alt"></i></div><div class="stat-info"><div class="stat-label">' + escHtml(doc.title || doc.name || 'Document') + '</div><div class="stat-value" style="font-size:14px">' + (doc.content_type || 'text') + '</div></div></div>';
+    }).join('') + '</div>';
+  }).catch(function(e) { el.innerHTML = '<div class="error-state">Error: ' + e.message + '</div>'; });
+}
+
+// ============================================================
+// DASHBOARD: Odyssey - Themes
+// ============================================================
+function initThemes() {
+  var el = document.getElementById('themesContent');
+  if (!el) return;
+  el.innerHTML = '<div class="grid-4" id="themeGrid">' +
+    '  <div class="stat-card" onclick="applyTheme(\'dark\')"><div class="stat-icon blue"><i class="fas fa-moon"></i></div><div class="stat-info"><div class="stat-value" style="font-size:16px">Dark</div><div class="stat-label">Default dark theme</div></div></div>' +
+    '  <div class="stat-card" onclick="applyTheme(\'light\')"><div class="stat-icon orange"><i class="fas fa-sun"></i></div><div class="stat-info"><div class="stat-value" style="font-size:16px">Light</div><div class="stat-label">Clean light theme</div></div></div>' +
+    '  <div class="stat-card" onclick="applyTheme(\'midnight\')"><div class="stat-icon purple"><i class="fas fa-star"></i></div><div class="stat-info"><div class="stat-value" style="font-size:16px">Midnight</div><div class="stat-label">Deep blue night</div></div></div>' +
+    '  <div class="stat-card" onclick="applyTheme(\'cyberpunk\')"><div class="stat-icon red"><i class="fas fa-bolt"></i></div><div class="stat-info"><div class="stat-value" style="font-size:16px">Cyberpunk</div><div class="stat-label">Neon futuristic</div></div></div>' +
+    '  <div class="stat-card" onclick="applyTheme(\'forest\')"><div class="stat-icon green"><i class="fas fa-tree"></i></div><div class="stat-info"><div class="stat-value" style="font-size:16px">Forest</div><div class="stat-label">Nature green</div></div></div>' +
+    '  <div class="stat-card" onclick="applyTheme(\'ocean\')"><div class="stat-icon blue"><i class="fas fa-water"></i></div><div class="stat-info"><div class="stat-value" style="font-size:16px">Ocean</div><div class="stat-label">Deep sea blue</div></div></div>' +
+    '</div>';
+}
+
+function applyTheme(name) {
+  showToast('Theme: ' + name, 'info');
+  // Apply via Odyssey API
+  fetch('/api/odyssey/prefs', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ theme: name }) }).then(function(r) { return r.json(); }).then(function(d) {
+    showToast('Theme applied!', 'success');
+  }).catch(function(e) {
+    // Fallback: apply locally
+    if (name === 'light') { document.documentElement.classList.remove('dark'); }
+    else { document.documentElement.classList.add('dark'); }
+    showToast('Theme applied locally', 'success');
+  });
+}
+// ============================================================
+// DASHBOARD: Market Page
+// ============================================================
+function initMarket() {
+  loadMarketData();
+  if (window._mkInt) clearInterval(window._mkInt);
+  window._mkInt = setInterval(loadMarketData, 60000);
+}
+
+function loadMarketData() {
+  var coinsEl = document.getElementById('marketCoins');
+  var fngEl = document.getElementById('marketFng');
+  var newsEl = document.getElementById('marketNews');
+  var techEl = document.getElementById('marketTechnical');
+  if (!coinsEl) return;
+  coinsEl.innerHTML = '<div class="loading-state">Loading market...</div>';
+  fetch('/api/market/overview').then(function(r) { return r.json(); }).then(function(d) {
+    // Coins
+    var coins = d.coins || {};
+    coinsEl.innerHTML = Object.keys(coins).map(function(name) {
+      var c = coins[name];
+      var change = c.change_24h;
+      var changeCls = change >= 0 ? 'up' : 'down';
+      return '<div class="stat-card"><div class="stat-icon"><i class="fas fa-coins"></i></div>' +
+        '<div><div class="stat-value">$' + (c.usd ? c.usd.toLocaleString() : 'N/A') + '</div>' +
+        '<div class="stat-label">' + name.toUpperCase() + ' <span class="badge ' + changeCls + '">' +
+        (change ? (change >= 0 ? '+' : '') + change.toFixed(2) + '%' : 'N/A') + '</span></div></div></div>';
+    }).join('');
+    // Fear & Greed
+    var fg = d.fear_greed || {};
+    var fgVal = fg.value || 'N/A';
+    var fgCls = fgVal <= 25 ? 'down' : fgVal >= 75 ? 'up' : 'warning';
+    if (fngEl) {
+      fngEl.innerHTML = '<div style="text-align:center;padding:16px">' +
+        '<div style="font-size:48px;font-weight:700;color:var(--' + (fgCls === 'down' ? 'danger' : fgCls === 'up' ? 'success' : 'warning') + ')">' +
+        fgVal + '</div><div style="font-size:13px;color:var(--text-secondary)">/ 100</div></div>';
+    }
+    // News
+    if (newsEl) {
+      var news = d.news || [];
+      if (news.length) {
+        newsEl.innerHTML = news.map(function(n) {
+          return '<div class="event-item"><div class="event-msg"><a href="' + escHtml(n.url || '#') + '" target="_blank" style="color:var(--primary);text-decoration:none">' + escHtml(n.title || '') + '</a><br><span style="font-size:11px;color:var(--text-muted)">' + escHtml(n.source || '') + '</span></div></div>';
+        }).join('');
+      } else {
+        newsEl.innerHTML = '<div class="empty-state">No news</div>';
+      }
+    }
+    // Technical
+    var btcTech = d.btc_technical || {};
+    if (techEl && btcTech.rsi) {
+      techEl.innerHTML =
+        '<div class="grid-3">' +
+        '<div class="stat-card"><div class="stat-icon"><i class="fas fa-chart-line"></i></div><div class="stat-value">' + (btcTech.rsi || 'N/A') + '</div><div class="stat-label">RSI (' + (btcTech.rsi_signal || '') + ')</div></div>' +
+        '<div class="stat-card"><div class="stat-icon"><i class="fas fa-arrow-trend-up"></i></div><div class="stat-value">' + (btcTech.trend || 'N/A') + '</div><div class="stat-label">Trend</div></div>' +
+        '<div class="stat-card"><div class="stat-icon"><i class="fas fa-bullseye"></i></div><div class="stat-value">' + btcTech.macd_signal + '</div><div class="stat-label">MACD</div></div>' +
+        '</div><div class="grid-2" style="margin-top:8px">' +
+        '<div><div style="font-size:12px;color:var(--text-muted)">Support</div><div style="font-size:16px;font-weight:600">$' + (btcTech.support || 'N/A') + '</div></div>' +
+        '<div><div style="font-size:12px;color:var(--text-muted)">Resistance</div><div style="font-size:16px;font-weight:600">$' + (btcTech.resistance || 'N/A') + '</div></div>' +
+        '</div>';
+    } else if (techEl) {
+      techEl.innerHTML = '<div class="empty-state">Technical data available with BTC only</div>';
+    }
+  }).catch(function(e) {
+    coinsEl.innerHTML = '<div class="error-state">Market unavailable: ' + e.message + '</div>';
+  });
+}
+
+// ============================================================
+// DASHBOARD: Docker Page
+// ============================================================
+function initDocker() {
+  loadDocker();
+  if (window._dkInt) clearInterval(window._dkInt);
+  window._dkInt = setInterval(loadDocker, 30000);
+}
+
+function loadDocker() {
+  var el = document.getElementById('dockerContent');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-state">Loading containers...</div>';
+  var label = document.getElementById('dockerStatus');
+  if (label) label.textContent = 'loading...';
+  fetch('/api/docker/ps').then(function(r) { return r.json(); }).then(function(d) {
+    if (d.error) { el.innerHTML = '<div class="error-state">' + d.error + '</div>'; return; }
+    var containers = d.containers || [];
+    if (label) label.textContent = containers.length + ' containers';
+    if (!containers.length) {
+      el.innerHTML = '<div class="empty-state">No containers running</div>';
+      return;
+    }
+    el.innerHTML = '<div class="stats-grid">' +
+      containers.map(function(c) {
+        var isUp = c.status && c.status.indexOf('Up') === 0;
+        var statusClass = isUp ? 'badge up' : 'badge down';
+        var statusText = isUp ? 'RUNNING' : 'STOPPED';
+        return '<div class="stat-card"><div class="stat-icon"><i class="fas fa-' + (isUp ? 'play-circle' : 'stop-circle') + '"></i></div>' +
+          '<div><div class="stat-value">' + escHtml(c.name) + '</div>' +
+          '<div class="stat-label"><span class="' + statusClass + '">' + statusText + '</span> ' +
+          escHtml(c.status) + '</div>' +
+          '<div style="font-size:11px;color:var(--text-muted);margin-top:4px">' + escHtml(c.image) + '</div>' +
+          '<div style="font-size:11px;color:var(--text-muted)">Ports: ' + escHtml(c.ports || '-') + '</div></div></div>';
+      }).join('') + '</div>';
+  }).catch(function(e) {
+    el.innerHTML = '<div class="error-state">Failed: ' + e.message + '</div>';
+    if (label) label.textContent = 'error';
+  });
+}
+
+// ============================================================
+// DASHBOARD: WhatsApp Bridge Page
+// ============================================================
+function initWA() {
+  loadWA();
+  if (window._waInt) clearInterval(window._waInt);
+  window._waInt = setInterval(loadWA, 10000);
+}
+
+function loadWA() {
+  var el = document.getElementById('waContent');
+  var label = document.getElementById('waStatus');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-state">Checking connection...</div>';
+  if (label) label.textContent = 'checking...';
+  fetch('/api/wa/status').then(function(r) { return r.json(); }).then(function(d) {
+    if (label) label.textContent = d.connected ? 'connected' : 'disconnected';
+    var statusColor = d.connected ? 'var(--success)' : 'var(--danger)';
+    var statusText = d.connected ? 'Connected' : 'Disconnected';
+    el.innerHTML =
+      '<div class="stats-grid">' +
+      '<div class="stat-card"><div class="stat-icon" style="background:' + statusColor + '20;color:' + statusColor + '"><i class="fab fa-whatsapp"></i></div>' +
+      '<div><div class="stat-value" style="color:' + statusColor + '">' + statusText + '</div>' +
+      '<div class="stat-label">WhatsApp Bridge</div></div></div>' +
+      (d.qr ? '<div class="stat-card"><div class="stat-icon" style="background:var(--warning);color:#000"><i class="fas fa-qrcode"></i></div>' +
+      '<div><div class="stat-value">QR Available</div><div class="stat-label">Scan to connect</div></div></div>' : '') +
+      '</div>' +
+      '<div class="card" style="margin-top:12px"><div class="card-header">Connection Detail</div>' +
+      (d.connected
+        ? '<p style="color:var(--success)">WhatsApp terhubung dan siap menerima pesan.</p>'
+        : '<p style="color:var(--danger)">WhatsApp tidak terhubung.</p>' +
+          (d.qr && d.qr_base64
+            ? '<div style="text-align:center;margin-top:12px">' +
+              '<img src="' + d.qr_base64 + '" class="wa-qr-img" alt="WA QR Code" style="width:220px;height:220px;border-radius:12px;background:#fff;padding:12px;display:inline-block;box-shadow:0 4px 16px rgba(0,0,0,0.3)">' +
+              '<p style="font-size:12px;color:var(--text-muted);margin-top:10px">Scan QR code di atas dengan WhatsApp kamu</p></div>'
+            : '') +
+          (d.qr && !d.qr_base64
+            ? '<p style="margin-top:4px">Scan QR code di <a href="http://localhost:3002" target="_blank" style="color:var(--primary)">WA Bridge Web UI</a></p>'
+            : '')) +
+      (d.error ? '<p style="color:var(--danger);font-size:12px">Error: ' + escHtml(d.error) + '</p>' : '') +
+      '</div>' +
+      '<div class="card" style="margin-top:12px"><div class="card-header">Quick Actions</div>' +
+      '<div class="quick-actions">' +
+      '<button class="quick-action" onclick="window.open(\'http://localhost:3002\',\'_blank\')"><i class="fas fa-qrcode"></i> Open WA Bridge</button>' +
+      '<button class="quick-action" onclick="navigateTo(\'chat\')"><i class="fas fa-comment"></i> Go to Chat</button>' +
+      '</div></div>';
+  }).catch(function(e) {
+    el.innerHTML = '<div class="error-state">WA Bridge unreachable: ' + e.message + '</div>';
+    });
+  }
+
+// ============================================================
+// SYSTEM DASHBOARD — Comprehensive Monitoring
+// ============================================================
+function initSystem() {
+  loadSystemData();
+  if (window._sysInt) clearInterval(window._sysInt);
+  window._sysInt = setInterval(loadSystemData, 15000);
+  // Update clock
+  var clk = document.getElementById('sysClock');
+  if (clk) {
+    function tick() { clk.textContent = new Date().toLocaleString('id-ID'); }
+    tick();
+    setInterval(tick, 1000);
+  }
+}
+
+function refreshSystem() {
+  loadSystemData();
+  showToast('Refreshing system data...', 'info');
+}
+
+function loadSystemData() {
+  // Use ecosystem endpoint for most data
+  fetch('/api/ecosystem').then(function(r) { return r.json(); }).then(function(d) {
+    var health = d.health || {};
+    var svcs = d.services || {};
+    var sys = d.system || {};
+    var docker = d.docker || [];
+    var heal = d.heal || {};
+
+    // Stats cards
+    renderSysStatsCards(d, health, svcs);
+
+    // Services
+    renderSysServices(health, svcs);
+
+    // Docker
+    renderSysDocker(docker);
+
+    // Resources
+    renderSysResources(sys, d.uptime || 0);
+
+    // Self-healing
+    renderSysHeal(heal);
+
+    // MCP servers
+    renderSysMcp();
+  }).catch(function(e) {
+    document.getElementById('sysStatsCards').innerHTML = '<div class="error-state">Failed: ' + e.message + '</div>';
+  });
+
+  // Scheduled tasks
+  renderSysTasks();
+}
+
+function renderSysStatsCards(d, health, svcs) {
+  var el = document.getElementById('sysStatsCards');
+  if (!el) return;
+  var totalSvcs = Object.keys(health).length;
+  var upSvcs = Object.keys(health).filter(function(k) { return health[k].status === 'up'; }).length;
+  var systemStats = d.system || {};
+  var memStr = systemStats.memory || '0/0';
+  var memParts = memStr.split('/');
+  var memTotal = memParts.length > 1 ? memParts[1] : '0';
+  var diskStr = systemStats.disk || '0';
+  var diskFree = diskStr.split(' ')[0] || '0';
+
+  el.innerHTML =
+    '<div class="stat-card-system"><div class="stat-icon-box pastel-coral"><span class="material-symbols-outlined">cloud_done</span></div><div class="stat-info"><div class="stat-value">' + upSvcs + '/' + totalSvcs + '</div><div class="stat-label">Services Up</div></div></div>' +
+    '<div class="stat-card-system"><div class="stat-icon-box pastel-lavender"><span class="material-symbols-outlined">memory</span></div><div class="stat-info"><div class="stat-value">' + memTotal + '</div><div class="stat-label">Total RAM</div></div></div>' +
+    '<div class="stat-card-system"><div class="stat-icon-box pastel-mint"><span class="material-symbols-outlined">storage</span></div><div class="stat-info"><div class="stat-value">' + diskFree + '</div><div class="stat-label">Free Disk</div></div></div>' +
+    '<div class="stat-card-system"><div class="stat-icon-box pastel-amber"><span class="material-symbols-outlined">timer</span></div><div class="stat-info"><div class="stat-value">' + Math.floor((d.uptime || 0) / 3600) + 'h</div><div class="stat-label">Uptime</div></div></div>';
+}
+
+function renderSysServices(health, svcs) {
+  var el = document.getElementById('sysServices');
+  var count = document.getElementById('sysServicesCount');
+  if (!el) return;
+  var names = Object.keys(health);
+  var upCount = names.filter(function(k) { return health[k].status === 'up'; }).length;
+  if (count) count.textContent = upCount + '/' + names.length + ' up';
+
+  // Also include systemctl services
+  var systemdSvcs = Object.keys(svcs);
+  var allNames = names.concat(systemdSvcs.filter(function(s) { return names.indexOf(s) < 0; }));
+
+  if (!allNames.length) {
+    el.innerHTML = '<div class="empty-state">No services data</div>';
+    return;
+  }
+
+  el.innerHTML = allNames.map(function(name) {
+    var h = health[name] || {};
+    var s = svcs[name] || '';
+    var status = h.status || s || 'unknown';
+    var isUp = status === 'up' || status === 'active';
+    return '<div class="flex items-center gap-3 p-2 rounded-xl hover:bg-surface-container-low transition-colors">' +
+      '<span class="w-2 h-2 rounded-full ' + (isUp ? 'bg-secondary' : 'bg-[#FA896B]') + '"></span>' +
+      '<span class="flex-1 text-body-md font-body-md text-on-surface">' + name + '</span>' +
+      '<span class="text-caption font-caption ' + (isUp ? 'text-secondary' : 'text-[#FA896B]') + '">' + status + '</span></div>';
+  }).join('');
+}
+
+function renderSysDocker(docker) {
+  var el = document.getElementById('sysDocker');
+  var count = document.getElementById('sysDockerCount');
+  if (!el) return;
+  if (count) count.textContent = docker.length + ' containers';
+  if (!docker.length) {
+    el.innerHTML = '<div class="empty-state">No containers running</div>';
+    return;
+  }
+  el.innerHTML = docker.map(function(c) {
+    var isUp = c.status && c.status.indexOf('Up') === 0;
+    return '<div class="flex items-center gap-3 p-2 rounded-xl hover:bg-surface-container-low transition-colors">' +
+      '<span class="w-2 h-2 rounded-full ' + (isUp ? 'bg-secondary' : 'bg-[#FA896B]') + '"></span>' +
+      '<span class="flex-1 text-body-md font-body-md text-on-surface font-semibold">' + escHtml(c.name) + '</span>' +
+      '<span class="text-caption font-caption text-on-surface-variant">' + escHtml(c.image || '') + '</span>' +
+      '<span class="text-caption font-caption ' + (isUp ? 'text-secondary' : 'text-[#FA896B]') + '">' + escHtml(c.status || '') + '</span></div>';
+  }).join('');
+}
+
+function renderSysResources(sys, uptime) {
+  var el = document.getElementById('sysResources');
+  if (!el) return;
+  var cpuPct = parseFloat(sys.cpu || '0');
+  var memStr = sys.memory || '0/0';
+  var diskStr = sys.disk || 'N/A';
+  var memParts = memStr.split('/');
+  var memUsed = parseFloat(memParts[0]) || 0;
+  var memTotal = parseFloat(memParts[1]) || 1;
+  var memPct = Math.round((memUsed / memTotal) * 100);
+  // Disk percentage (rough estimate from free/total)
+  var diskFreeMatch = diskStr.match(/([\d.]+)\s*G/);
+  var diskPct = 50;
+  if (diskFreeMatch) {
+    // Assume ~240GB total for SSD
+    var freeGb = parseFloat(diskFreeMatch[1]) || 0;
+    diskPct = Math.round((1 - freeGb / 240) * 100);
+    diskPct = Math.min(99, Math.max(0, diskPct));
+  }
+
+  el.innerHTML =
+    '<div><div class="flex justify-between text-body-md font-body-md mb-1"><span>CPU</span><span>' + cpuPct + '%</span></div><div class="w-full bg-surface-container rounded-full h-2"><div class="bg-primary h-2 rounded-full ' + (cpuPct > 80 ? 'bg-[#FA896B]' : cpuPct > 50 ? 'bg-[#FFAE1F]' : '') + '" style="width:' + Math.min(100, cpuPct) + '%"></div></div></div>' +
+    '<div><div class="flex justify-between text-body-md font-body-md mb-1"><span>RAM</span><span>' + memStr + '</span></div><div class="w-full bg-surface-container rounded-full h-2"><div class="bg-[#13DEB9] h-2 rounded-full" style="width:' + Math.min(100, memPct) + '%"></div></div></div>' +
+    '<div><div class="flex justify-between text-body-md font-body-md mb-1"><span>Disk</span><span>' + diskStr + '</span></div><div class="w-full bg-surface-container rounded-full h-2"><div class="bg-[#FA896B] h-2 rounded-full" style="width:' + diskPct + '%"></div></div></div>' +
+    '<div class="pt-2 text-caption font-caption text-on-surface-variant">Uptime: ' + Math.floor(uptime / 3600) + ' jam ' + Math.floor((uptime % 3600) / 60) + ' menit</div>';
+}
+
+function renderSysHeal(heal) {
+  var el = document.getElementById('sysHeal');
+  if (!el) return;
+  if (!heal.total_incidents && !heal.by_pattern) {
+    el.innerHTML = '<div class="empty-state">No self-healing data yet</div>';
+    return;
+  }
+  var html = '<div class="grid grid-cols-2 gap-3 mb-3">' +
+    '<div class="bg-surface-container-low rounded-xl p-3 text-center"><div class="text-headline-sm font-headline-sm text-on-surface">' + (heal.total_incidents || 0) + '</div><div class="text-caption font-caption text-on-surface-variant">Incidents</div></div>' +
+    '<div class="bg-surface-container-low rounded-xl p-3 text-center"><div class="text-headline-sm font-headline-sm text-on-surface">' + (heal.active_rules || 0) + '</div><div class="text-caption font-caption text-on-surface-variant">Rules Active</div></div></div>';
+  if (heal.by_pattern) {
+    html += '<div class="space-y-1">';
+    Object.keys(heal.by_pattern).forEach(function(p) {
+      html += '<div class="flex justify-between text-body-md font-body-md"><span>' + escHtml(p) + '</span><span class="text-on-surface-variant">' + heal.by_pattern[p] + 'x</span></div>';
+    });
+    html += '</div>';
+  }
+  if (heal.last_analysis) {
+    html += '<div class="mt-2 text-caption font-caption text-on-surface-variant">Last: ' + (heal.last_analysis || '').slice(0, 19) + '</div>';
+  }
+  el.innerHTML = html;
+}
+
+function renderSysMcp() {
+  var el = document.getElementById('sysMcp');
+  var count = document.getElementById('sysMcpCount');
+  if (!el) return;
+  fetch('/api/mcp/servers').then(function(r) { return r.json(); }).then(function(d) {
+    var servers = d.servers || [];
+    if (count) count.textContent = servers.length + ' servers';
+    if (!servers.length) {
+      el.innerHTML = '<div class="empty-state">No MCP servers configured</div>';
+      return;
+    }
+    el.innerHTML = servers.map(function(s) {
+      var active = s.connected;
+      var tc = (s.tools || []).length;
+      return '<div class="flex items-center gap-3 p-2 rounded-xl hover:bg-surface-container-low transition-colors">' +
+        '<span class="w-2 h-2 rounded-full ' + (active ? 'bg-secondary' : 'bg-[#94a3b8]') + '"></span>' +
+        '<span class="flex-1 text-body-md font-body-md text-on-surface font-semibold">' + escHtml(s.name) + '</span>' +
+        '<span class="text-caption font-caption text-on-surface-variant">' + tc + ' tools</span>' +
+        '<span class="text-caption font-caption ' + (active ? 'text-secondary' : 'text-[#94a3b8]') + '">' + (active ? 'Connected' : 'Disconnected') + '</span></div>';
+    }).join('');
+  }).catch(function(e) {
+    el.innerHTML = '<div class="error-state">MCP unavailable</div>';
+  });
+}
+
+function renderSysTasks() {
+  var el = document.getElementById('sysTasks');
+  if (!el) return;
+  fetch('/api/scheduled-tasks').then(function(r) { return r.json(); }).then(function(d) {
+    var tasks = d.custom_tasks || [];
+    if (!tasks.length) {
+      el.innerHTML = '<div class="empty-state">No scheduled tasks</div>';
+      return;
+    }
+    el.innerHTML = tasks.map(function(t) {
+      return '<div class="flex items-center gap-3 p-2 rounded-xl hover:bg-surface-container-low transition-colors">' +
+        '<span class="w-2 h-2 rounded-full ' + (t.enabled ? 'bg-secondary' : 'bg-[#94a3b8]') + '"></span>' +
+        '<span class="flex-1 text-body-md font-body-md text-on-surface">' + escHtml(t.name) + '</span>' +
+        '<span class="text-caption font-caption text-on-surface-variant">' + escHtml(t.cron || '') + '</span></div>';
+    }).join('');
+  }).catch(function(e) {
+    el.innerHTML = '<div class="error-state">' + e.message + '</div>';
+  });
+}
+function quickRun(label, cmd) {
+  showToast('Running ' + label + '...', 'info');
+  fetch('/exec', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ cmd: cmd })
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    var output = (d.stdout || '') + (d.stderr ? '\n<span style="color:var(--danger)">' + d.stderr + '</span>' : '');
+    showModal(label, '<pre style="background:#0d1117;color:#7ee787;padding:12px;border-radius:6px;font-size:12px;max-height:400px;overflow:auto">' + escHtml(output || 'No output') + '</pre>');
+    showToast(label + ' selesai', 'success');
+  }).catch(function(e) {
+    showToast('Error: ' + e.message, 'error');
+  });
+}
+
+function quickBriefing() {
+  showToast('Loading briefing...', 'info');
+  fetch('/brief').then(function(r) { return r.json(); }).then(function(d) {
+    showModal('Market Briefing', '<pre style="background:#0d1117;color:#e2e8f0;padding:12px;border-radius:6px;font-size:12px;max-height:400px;overflow:auto">' + escHtml(JSON.stringify(d, null, 2)) + '</pre>');
+  }).catch(function(e) {
+    showToast('Error: ' + e.message, 'error');
+  });
+}
+
+// ============================================================
+// DASHBOARD: Pipeline Page
+// ============================================================
+function initPipeline() { loadPipelineData(); }
+
+function loadPipelineData() {
+  var el = document.getElementById('pipelineStages');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-state">Loading pipeline...</div>';
+  fetch('/leads').then(function(r) { return r.json(); }).then(function(d) {
+    var leads = d.leads || [];
+    if (!leads.length) {
+      el.innerHTML = '<div class="empty-state" style="grid-column:1/-1">Belum ada leads</div>';
+      return;
+    }
+    document.getElementById('pipelineStats').innerHTML =
+      '<div class="stat-card"><div class="stat-value">' + leads.length + '</div><div class="stat-label">Total Leads</div></div>' +
+      '<div class="stat-card"><div class="stat-value">' + leads.filter(function(l) { return l.deployed; }).length + '</div><div class="stat-label">Deployed</div></div>' +
+      '<div class="stat-card"><div class="stat-value">' + leads.filter(function(l) { return l.live; }).length + '</div><div class="stat-label">Live</div></div>' +
+      '<div class="stat-card"><div class="stat-value">' + leads.filter(function(l) { return l.proposal_sent; }).length + '</div><div class="stat-label">Proposals</div></div>';
+    document.getElementById('pipelineSteps').innerHTML =
+      ['Intake', 'Analysis', 'Proposal', 'Deploy', 'Live'].map(function(s) {
+        return '<div class="pipeline-step">' + s + '</div>';
+      }).join('');
+    el.innerHTML = leads.slice(-8).reverse().map(function(l) {
+      return '<div class="pipeline-card" onclick="window.open(\'/portal/' + (l.nama_usaha || '').toLowerCase().replace(/ /g, '-') + '\',\'_blank\')"><strong>' + escHtml(l.nama_usaha || '-') + '</strong><br><span style="font-size:11px;color:var(--text-muted)">' + escHtml(l.nama_pemilik || '-') + ' · ' + escHtml(l.paket || '-') + '</span></div>';
+    }).join('');
+  }).catch(function(e) {
+    el.innerHTML = '<div class="error-state">Error: ' + e.message + '</div>';
+  });
+}
+
+// ============================================================
+// DASHBOARD: Knowledge Page
+// ============================================================
+function initKnowledge() {
+  document.getElementById('kbSearchBtn').onclick = searchKnowledge;
+  document.getElementById('kbQuery').onkeydown = function(e) {
+    if (e.key === 'Enter') searchKnowledge();
+  };
+  document.querySelectorAll('#page-knowledge .tab').forEach(function(t) {
+    t.onclick = function() {
+      document.querySelectorAll('#page-knowledge .tab').forEach(function(x) {
+        x.classList.remove('active');
+      });
+      t.classList.add('active');
+    };
+  });
+}
+
+function searchKnowledge() {
+  var q = document.getElementById('kbQuery').value.trim();
+  var el = document.getElementById('kbResults');
+  if (!q) { el.innerHTML = '<div class="empty-state">Masukkan query</div>'; return; }
+  el.innerHTML = '<div class="loading-state">Mencari...</div>';
+  fetch('/knowledge?q=' + encodeURIComponent(q) + '&limit=10')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var results = d.results || [];
+      if (!results.length) {
+        el.innerHTML = '<div class="empty-state">Tidak ada hasil untuk "' + q + '"</div>';
+        return;
+      }
+      el.innerHTML = '<p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">' + d.count + ' hasil</p>' +
+        results.map(function(r) {
+          var score = Math.round((r.score || 0.5) * 100);
+          return '<div class="result-item" onclick="showModal(\'Detail\',\'<pre style=background:#0d1117;color:#e2e8f0;padding:12px;border-radius:6px;font-size:12px;max-height:400px;overflow:auto>' + escHtml((r.content || '').slice(0, 2000)) + '</pre>\')"><div class="result-title">' + escHtml(r.title || r.source || 'Document') + '</div><div class="result-meta">Match: ' + score + '% · ' + escHtml(r.source || 'KB') + '</div><div class="score-bar"><div class="score-fill" style="width:' + score + '%"></div></div><div class="snippet">' + escHtml((r.content || '').slice(0, 150)) + '...</div></div>';
+        }).join('');
+    }).catch(function(e) {
+      el.innerHTML = '<div class="error-state">Error: ' + e.message + '</div>';
+    });
+}
+
+// ============================================================
+// DASHBOARD: Terminal Page
+// ============================================================
+var termHistory = [];
+var termHistoryIdx = -1;
+
+function initTerminal() {
+  var input = document.getElementById('terminalInput');
+  if (!input) return;
+  input.onkeydown = handleTerminalKey;
+  appendTerminal('INXOTIVE Web Terminal v1.0');
+  appendTerminal('Type "help" for commands');
+  appendTerminal('');
+  input.focus();
+}
+
+function handleTerminalKey(e) {
+  var input = e.target;
+  if (e.key === 'Enter') {
+    var cmd = input.value.trim();
+    input.value = '';
+    if (!cmd) return;
+    appendTerminal('$ ' + cmd);
+    termHistory.push(cmd);
+    termHistoryIdx = termHistory.length;
+    execTerminalCmd(cmd);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (termHistoryIdx > 0) {
+      termHistoryIdx--;
+      input.value = termHistory[termHistoryIdx] || '';
+    }
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (termHistoryIdx < termHistory.length - 1) {
+      termHistoryIdx++;
+      input.value = termHistory[termHistoryIdx] || '';
+    } else {
+      termHistoryIdx = termHistory.length;
+      input.value = '';
+    }
+  } else if (e.key === 'l' && e.ctrlKey) {
+    e.preventDefault();
+    clearTerminal();
+    appendTerminal('INXOTIVE Web Terminal v1.0');
+  }
+}
+
+function execTerminalCmd(cmd) {
+  var c = cmd.toLowerCase().trim();
+  if (c === 'help') {
+    appendTerminal('Commands: help, clear, inxo (system status), history');
+    return;
+  }
+  if (c === 'clear') { clearTerminal(); return; }
+  if (c === 'inxo') {
+    fetch('/status').then(function(r) { return r.json(); }).then(function(d) {
+      var out = 'Services:';
+      if (d.services) Object.keys(d.services).forEach(function(k) {
+        out += ' ' + k + '=' + d.services[k];
+      });
+      out += ' | Disk: ' + (d.disk || '');
+      appendTerminal(out);
+    }).catch(function(e) { appendTerminal('Error: ' + e.message, 'stderr'); });
+    return;
+  }
+  if (c === 'history') {
+    appendTerminal(termHistory.map(function(c, i) {
+      return '  ' + (i + 1) + '  ' + c;
+    }).join('\n'));
+    return;
+  }
+  appendTerminal('[Running...]');
+  fetch('/exec', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ cmd: cmd })
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    if (d.stdout) appendTerminal(d.stdout, 'stdout');
+    if (d.stderr) appendTerminal(d.stderr, 'stderr');
+  }).catch(function(e) {
+    appendTerminal('Error: ' + e.message, 'stderr');
+  });
+}
+
+function appendTerminal(text, cls) {
+  var el = document.getElementById('terminalOutput');
+  if (!el) return;
+  var div = document.createElement('div');
+  if (cls) div.className = cls;
+  div.textContent = text;
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
+
+function clearTerminal() {
+  var el = document.getElementById('terminalOutput');
+  if (el) el.innerHTML = '';
+}
+
+// ============================================================
+// DASHBOARD: Files Page
+// ============================================================
+var filesPath = '';
+
+function initFiles() { loadFileList(''); }
+
+function loadFileList(path) {
+  var list = document.getElementById('filesList');
+  var bread = document.getElementById('filesBreadcrumb');
+  var label = document.getElementById('filesPathLabel');
+  if (!list) return;
+  filesPath = path;
+  list.innerHTML = '<div class="loading-state">Loading...</div>';
+  if (label) label.textContent = '/' + path;
+  fetch('/api/files?path=' + encodeURIComponent(path))
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.error) { list.innerHTML = '<div class="error-state">' + d.error + '</div>'; return; }
+      // Breadcrumb
+      if (bread) {
+        var parts = path ? path.split('/').filter(Boolean) : [];
+        var bc = '<span onclick="loadFileList(\'\')">/home/bisma</span>';
+        var cum = '';
+        parts.forEach(function(p) {
+          cum += '/' + p;
+          bc += '<span class="sep">/</span><span onclick="loadFileList(\'' + cum.slice(1) + '\')">' + p + '</span>';
+        });
+        bread.innerHTML = bc;
+      }
+      if (!d.items || !d.items.length) {
+        list.innerHTML = '<div class="empty-state">Folder kosong</div>';
+        return;
+      }
+      list.innerHTML = d.items.map(function(item) {
+        var icon = item.is_dir ? '<i class="fas fa-folder" style="color:var(--warning)"></i>' : '<i class="fas fa-file" style="color:var(--primary)"></i>';
+        var sizeStr = item.is_dir ? '-' : formatBytes(item.size);
+        return '<div class="file-item" onclick="' + (item.is_dir ? 'loadFileList(\'' + item.path + '\')' : 'viewFile(\'' + item.path + '\')') + '">' +
+          '<span class="file-icon">' + icon + '</span>' +
+          '<span class="file-name">' + escHtml(item.name) + '</span>' +
+          '<span class="file-size">' + sizeStr + '</span>' +
+          '<span class="file-date">' + (item.modified ? item.modified.slice(0, 10) : '') + '</span></div>';
+      }).join('');
+    }).catch(function(e) {
+      list.innerHTML = '<div class="error-state">' + e.message + '</div>';
+    });
+}
+
+function viewFile(path) {
+  showToast('Loading...', 'info');
+  fetch('/api/files/read?path=' + encodeURIComponent(path))
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.error) { showModal(path, '<p style="color:var(--danger)">' + d.error + '</p>'); return; }
+      showModal(path, '<pre style="background:#0d1117;color:#e2e8f0;padding:12px;border-radius:6px;font-size:12px;max-height:500px;overflow:auto"><code>' + escHtml(d.content || '') + '</code></pre>');
+    }).catch(function(e) {
+      showToast('Error: ' + e.message, 'error');
+    });
+}
+
+// ============================================================
+// DASHBOARD: Settings Page
+// ============================================================
+function initSettings() {
+  document.getElementById('settingsThemeBtn').onclick = function() {
+    toggleTheme();
+    showToast('Theme changed', 'info');
+  };
+  var agentSel = document.getElementById('settingsDefaultAgent');
+  if (agentSel) {
+    agentSel.innerHTML = AGENTS.map(function(a) {
+      return '<option value="' + a + '">' + agentLabel(a) + '</option>';
+    }).join('');
+    agentSel.value = localStorage.getItem('hub_default_agent') || 'researchx';
+    agentSel.onchange = function() {
+      localStorage.setItem('hub_default_agent', this.value);
+    };
+  }
+  var modelSel = document.getElementById('settingsDefaultModel');
+  if (modelSel) {
+    modelSel.innerHTML = '<option value="9r/max-free">9r/max-free</option><option value="ollama/qwen2.5:3b">qwen2.5:3b</option>';
+    modelSel.value = localStorage.getItem('hub_model') || '9r/max-free';
+    modelSel.onchange = function() {
+      localStorage.setItem('hub_model', this.value);
+    };
+  }
+  fetch('/status').then(function(r) { return r.json(); }).then(function(d) {
+    var el = document.getElementById('systemInfo');
+    if (!el) return;
+    el.innerHTML = '<table style="width:100%;font-size:13px">' +
+      '<tr><td style="padding:6px 0;color:var(--text-muted)">OS</td><td>Ubuntu 24.04</td></tr>' +
+      '<tr><td style="padding:6px 0;color:var(--text-muted)">Host</td><td>inxotive-server</td></tr>' +
+      '<tr><td style="padding:6px 0;color:var(--text-muted)">Uptime</td><td>' + Math.floor((d.uptime || 0) / 3600) + ' jam</td></tr>' +
+      '<tr><td style="padding:6px 0;color:var(--text-muted)">Services</td><td>' + (d.services ? Object.keys(d.services).length : 'N/A') + '</td></tr></table>';
+  }).catch(function() {
+    var el = document.getElementById('systemInfo');
+    if (el) el.innerHTML = '<p style="color:var(--text-muted)">Unavailable</p>';
+  });
+}
+
+// ============================================================
+// DASHBOARD: Brainstorm Page
+// ============================================================
+var bsAbortCtrl = null;
+
+function initBrainstorm() {
+  document.getElementById('bsStartBtn').onclick = startBrainstorm;
+  document.getElementById('bsStopBtn').onclick = stopBrainstorm;
+  document.getElementById('bsExportBtn').onclick = exportBrainstorm;
+  document.querySelectorAll('input[name="bsMode"]').forEach(function(r) {
+    r.onchange = function() {
+      var label = document.getElementById('bsModeLabel');
+      if (label) label.textContent = this.value.charAt(0).toUpperCase() + this.value.slice(1);
+    };
+  });
+}
+
+function startBrainstorm() {
+  var topic = document.getElementById('bsTopic').value.trim();
+  if (!topic) { showToast('Masukkan topik', 'error'); return; }
+  var agents = [];
+  document.querySelectorAll('#bsAgents input:checked').forEach(function(c) {
+    agents.push(c.value);
+  });
+  if (!agents.length) { showToast('Pilih minimal 1 agent', 'error'); return; }
+  var modeEl = document.querySelector('input[name="bsMode"]:checked');
+  var mode = modeEl ? modeEl.value : 'sequential';
+  document.getElementById('bsStartBtn').style.display = 'none';
+  document.getElementById('bsStopBtn').style.display = 'inline-block';
+  var results = document.getElementById('bsResults');
+  results.innerHTML = '<div class="loading-state">Memulai ' + mode + ' dengan ' + agents.length + ' agent(s)...</div>';
+  var promise = mode === 'sequential' ? bsSequential(topic, agents)
+    : mode === 'debate' ? bsDebate(topic, agents)
+    : bsHierarchical(topic, agents);
+  promise.catch(function(e) {
+    if (e !== 'aborted') results.innerHTML += '<div class="error-state">' + e.message + '</div>';
+  }).then(function() {
+    document.getElementById('bsStartBtn').style.display = 'inline-block';
+    document.getElementById('bsStopBtn').style.display = 'none';
+  });
+}
+
+function stopBrainstorm() {
+  if (bsAbortCtrl) { bsAbortCtrl.abort(); bsAbortCtrl = null; }
+}
+
+function bsSequential(topic, agents) {
+  var container = document.getElementById('bsResults');
+  var conv = 'Topik: ' + topic;
+  container.innerHTML = '';
+  var chain = Promise.resolve();
+  agents.forEach(function(agent) {
+    chain = chain.then(function() {
+      var div = document.createElement('div');
+      div.className = 'bs-msg';
+      div.innerHTML = '<div class="bs-agent">' + agentLabel(agent) + '</div><div class="bs-content">Menunggu...</div>';
+      container.appendChild(div);
+      return bsCallAgent(agent, conv, div.querySelector('.bs-content')).then(function(reply) {
+        conv += '\n\n[' + agentLabel(agent) + ']: ' + reply;
+      });
+    });
+  });
+  return chain;
+}
+
+function bsDebate(topic, agents) {
+  var container = document.getElementById('bsResults');
+  container.innerHTML = '';
+  var conv = 'Topik: ' + topic;
+  var chain = Promise.resolve();
+  for (var r = 0; r < 2; r++) {
+    agents.forEach(function(agent) {
+      chain = chain.then(function() {
+        var div = document.createElement('div');
+        div.className = 'bs-msg';
+        div.innerHTML = '<div class="bs-agent">' + agentLabel(agent) + ' (Round ' + (r + 1) + ')</div><div class="bs-content">Menunggu...</div>';
+        container.appendChild(div);
+        var prompt = r === 0 ? topic : 'Kritik/tanggapi diskusi:\n' + conv;
+        return bsCallAgent(agent, prompt, div.querySelector('.bs-content')).then(function(reply) {
+          conv += '\n\n[' + agentLabel(agent) + ' R' + (r + 1) + ']: ' + reply;
+        });
+      });
+    });
+  }
+  return chain;
+}
+
+function bsHierarchical(topic, agents) {
+  var container = document.getElementById('bsResults');
+  container.innerHTML = '';
+  var mgr = agents[0];
+  var rest = agents.slice(1);
+  var div = document.createElement('div');
+  div.className = 'bs-msg';
+  div.innerHTML = '<div class="bs-agent">' + agentLabel(mgr) + ' (Manager)</div><div class="bs-content">Memecah tugas...</div>';
+  container.appendChild(div);
+  return bsCallAgent(mgr, 'Breakdown untuk spesialis: ' + topic, div.querySelector('.bs-content')).then(function(breakdown) {
+    var chain = Promise.resolve();
+    rest.forEach(function(sp) {
+      chain = chain.then(function() {
+        var d = document.createElement('div');
+        d.className = 'bs-msg';
+        d.innerHTML = '<div class="bs-agent">' + agentLabel(sp) + ' (Spesialis)</div><div class="bs-content">Mengerjakan...</div>';
+        container.appendChild(d);
+        return bsCallAgent(sp, 'Manager breakdown:\n' + breakdown + '\n\nKerjakan bagianmu dari: ' + topic, d.querySelector('.bs-content'));
+      });
+    });
+    return chain;
+  });
+}
+
+function bsCallAgent(agent, prompt, contentEl) {
+  return new Promise(function(resolve, reject) {
+    bsAbortCtrl = new AbortController();
+    var fullReply = '';
+    fetch('/api/chat/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], agent: agent, model: currentModel, session_id: '' }),
+      signal: bsAbortCtrl.signal
+    }).then(function(resp) {
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      var reader = resp.body.getReader();
+      var decoder = new TextDecoder();
+      var buf = '';
+      function read() {
+        reader.read().then(function(result) {
+          if (result.done) {
+            if (!fullReply) contentEl.innerHTML = '<em style="color:var(--text-muted)">(empty)</em>';
+            resolve(fullReply);
+            return;
+          }
+          buf += decoder.decode(result.value, { stream: true });
+          var lines = buf.split('\n');
+          buf = lines.pop() || '';
+          lines.forEach(function(line) {
+            if (line.startsWith('data: ')) {
+              var ds = line.slice(6).trim();
+              if (!ds || ds === '[DONE]') return;
+              try {
+                var data = JSON.parse(ds);
+                if (data.token) { fullReply += data.token; contentEl.innerHTML = renderMarkdown(escHtml(fullReply)); }
+                if (data.error) throw new Error(data.error);
+              } catch (ep) {}
+            }
+          });
+          read();
+        }).catch(function(e) {
+          if (e.name === 'AbortError') { resolve(''); return; }
+          contentEl.innerHTML = '<span style="color:var(--danger)">Error: ' + e.message + '</span>';
+          reject(e);
+        });
+      }
+      read();
+    }).catch(function(e) {
+      if (e.name === 'AbortError') { resolve(''); return; }
+      contentEl.innerHTML = '<span style="color:var(--danger)">Error: ' + e.message + '</span>';
+      reject(e);
+    });
+  });
+}
+
+function exportBrainstorm() {
+  var topic = document.getElementById('bsTopic').value || 'Untitled';
+  var results = document.getElementById('bsResults');
+  var text = '# Brainstorm: ' + topic + '\nDate: ' + new Date().toLocaleString('id-ID') + '\n\n';
+  var msgs = results.querySelectorAll('.bs-msg');
+  msgs.forEach(function(m) {
+    var a = m.querySelector('.bs-agent');
+    var c = m.querySelector('.bs-content');
+    text += '## ' + (a ? a.textContent : 'Agent') + '\n' + (c ? c.textContent : '') + '\n\n';
+  });
+  var blob = new Blob([text], { type: 'text/markdown' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'brainstorm-' + Date.now() + '.md';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Exported!', 'success');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// MCP Client — Functions
+// ═══════════════════════════════════════════════════════════════════════
+
+var mcpEnabled = true;  // MCP aktif default
+var mcpDropdownVisible = false;
+
+function toggleMCPDropdown() {
+  mcpDropdownVisible = !mcpDropdownVisible;
+  var dd = document.getElementById('mcpDropdown');
+  if (!dd) return;
+  dd.style.display = mcpDropdownVisible ? 'block' : 'none';
+  if (mcpDropdownVisible) refreshMCPPanel();
+  // Close dropdown when clicking outside
+  if (mcpDropdownVisible) {
+    setTimeout(function() {
+      document.addEventListener('click', closeMcpDropdownOutside, true);
+    }, 10);
+  }
+}
+
+function closeMcpDropdownOutside(e) {
+  var dd = document.getElementById('mcpDropdown');
+  var btn = document.getElementById('mcpToggleBtn');
+  if (!dd || !btn) return;
+  if (!dd.contains(e.target) && !btn.contains(e.target)) {
+    dd.style.display = 'none';
+    mcpDropdownVisible = false;
+    document.removeEventListener('click', closeMcpDropdownOutside, true);
+  }
+}
+
+function toggleMCP() {
+  mcpEnabled = !mcpEnabled;
+  var chk = document.getElementById('mcpToggleCheck');
+  if (chk) chk.checked = mcpEnabled;
+  var dot = document.getElementById('mcpDot');
+  if (dot) dot.style.background = mcpEnabled ? '#22c55e' : '#94a3b8';
+  showToast('MCP ' + (mcpEnabled ? '✅ Aktif' : '⛔ Nonaktif'), 'info');
+  if (mcpEnabled) refreshMCPPanel();
+}
+
+async function refreshMCPPanel() {
+  var body = document.getElementById('mcpPanelBody');
+  try {
+    var r = await fetch('/api/mcp/servers');
+    var data = await r.json();
+    var servers = data.servers || [];
+    if (servers.length === 0) {
+      body.innerHTML = '<div style="text-align:center;padding:12px;color:var(--text-muted);font-size:13px">Tidak ada MCP server terkonfigurasi</div>';
+      return;
+    }
+    var html = '';
+    var connectedCount = 0;
+    servers.forEach(function(s) {
+      var active = s.connected;
+      if (active) connectedCount++;
+      var statusDot = '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + (active ? '#22c55e' : '#94a3b8') + ';flex-shrink:0"></span>';
+      var tools = s.tools || [];
+      html += '<div style="padding:10px;border-radius:10px;background:var(--surface-container-low);margin-bottom:8px">' +
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">' +
+        statusDot +
+        '<span style="font-weight:600;font-size:13px;color:var(--on-surface);flex:1">' + escHtml(s.name) + '</span>' +
+        '<span style="font-size:11px;color:' + (active ? '#22c55e' : '#94a3b8') + '">' + (active ? 'Connected' : 'Disconnected') + '</span></div>' +
+        '<div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">' + escHtml(s.command || '') + '</div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:4px">' +
+        (tools.length > 0
+          ? tools.map(function(t) { return '<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:var(--surface-container);color:var(--on-surface-variant)">🔧 ' + escHtml(t.name) + '</span>'; }).join('')
+          : '<span style="font-size:11px;color:var(--text-muted)">(no tools)</span>') +
+        '</div></div>';
+    });
+    body.innerHTML = html;
+    var rt = document.getElementById('mcpRefreshTime');
+    if (rt) rt.textContent = connectedCount + '/' + servers.length + ' connected';
+    // Update dot status on button
+    var dot = document.getElementById('mcpDot');
+    if (dot) dot.style.background = connectedCount === 0 ? '#FA896B' : '#22c55e';
+    // Update dot status
+    var dot = document.getElementById('mcpDot');
+    if (connectedCount === 0) {
+      dot.className = 'dot error';
+    } else if (connectedCount < servers.length) {
+      dot.className = 'dot on';
+    } else {
+      dot.className = 'dot on';
+    }
+  } catch(e) {
+    body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger)">Error: ' + escHtml(e.message) + '</div>';
+  }
+}
+
+// Add MCP toggle to the sidebar (bottom area)
+// Init on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+  // Init MCP panel (dropdown)
+  setTimeout(refreshMCPPanel, 1000);
+  setTimeout(checkAutodreamStatus, 2000);
+  // Init hooks
+  setTimeout(refreshHooks, 3000);
+  // Init scheduled tasks
+  setTimeout(loadScheduledTasks, 2500);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AUTODREAM — Memory Consolidation
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function checkAutodreamStatus() {
+  try {
+    var r = await fetch('/api/autodream/status');
+    var data = await r.json();
+    if (data.last_run) {
+      document.getElementById('autodreamStatus').textContent = '🟢 Last consolidation: ' + data.last_run;
+    } else {
+      document.getElementById('autodreamStatus').textContent = '⚪ Never run — click Consolidate to start';
+    }
+  } catch(e) {
+    document.getElementById('autodreamStatus').textContent = '⚠️ ' + e.message;
+  }
+}
+
+async function runAutodream() {
+  var el = document.getElementById('autodreamResult');
+  el.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Consolidating memory files...';
+  try {
+    var r = await fetch('/api/autodream/consolidate', { method: 'POST' });
+    var data = await r.json();
+    if (data.success) {
+      var s = data.stats || {};
+      var lines = [];
+      if (s.files_checked) lines.push('📁 ' + s.files_checked + ' files scanned');
+      if (s.dates_fixed) lines.push('📅 ' + s.dates_fixed + ' dates fixed');
+      if (s.duplicates_removed) lines.push('🗑️ ' + s.duplicates_removed + ' duplicates removed');
+      if (s.lines_compressed) lines.push('📏 ' + s.lines_compressed + ' blank lines compressed');
+      if (lines.length === 0) lines.push('✅ All clean — no changes needed');
+      el.innerHTML = lines.join('<br>') + '<br><span style="font-size:11px;color:var(--text-muted)">' + (data.report || '').slice(0, 200) + '</span>';
+    } else {
+      el.innerHTML = '❌ Error: ' + (data.error || 'unknown');
+    }
+    checkAutodreamStatus();
+  } catch(e) {
+    el.innerHTML = '❌ ' + e.message;
+  }
+}
+
+async function runAutodreamDaily() {
+  var el = document.getElementById('autodreamResult');
+  el.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Daily consolidation...';
+  try {
+    var r = await fetch('/api/autodream/daily', { method: 'POST' });
+    var data = await r.json();
+    if (data.success) {
+      el.innerHTML = '✅ Daily consolidation complete — ' + JSON.stringify(data.stats);
+    }
+    checkAutodreamStatus();
+  } catch(e) {
+    el.innerHTML = '❌ ' + e.message;
+  }
+}
+
+async function showAutodreamInsights() {
+  var el = document.getElementById('autodreamResult');
+  el.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating insights...';
+  try {
+    var r = await fetch('/api/autodream/insights');
+    var data = await r.json();
+    if (data.success && data.report) {
+      el.innerHTML = renderMarkdown(escHtml(data.report));
+    } else {
+      el.innerHTML = 'No insights available';
+    }
+  } catch(e) {
+    el.innerHTML = '❌ ' + e.message;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HOOKS — Event Pipeline
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function refreshHooks() {
+  var statusEl = document.getElementById('hooksStatus');
+  var listEl = document.getElementById('hooksList');
+  try {
+    var r = await fetch('/api/hooks');
+    var data = await r.json();
+    var hooks = data.hooks || [];
+    if (hooks.length === 0) {
+      statusEl.textContent = 'No hooks registered';
+      listEl.innerHTML = '<div style="font-size:12px;color:var(--text-muted)">Hooks are event-driven automations. Register one via API.</div>';
+      return;
+    }
+    statusEl.textContent = hooks.length + ' hook(s) registered';
+    listEl.innerHTML = hooks.map(function(h) {
+      return '<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">' +
+        '<span style="font-weight:600">' + escHtml(h.name) + '</span> ' +
+        '<span style="color:var(--text-muted)">→ ' + escHtml(h.trigger) + '</span>' +
+        (h.enabled ? ' 🟢' : ' ⚪') +
+        '<br><span style="font-size:11px;color:var(--text-muted)">' + escHtml(h.command || h.webhook_url || '') + '</span></div>';
+    }).join('');
+  } catch(e) {
+    statusEl.textContent = '⚠️ ' + e.message;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SCHEDULED TASKS
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function loadScheduledTasks() {
+  var el = document.getElementById('tasksList');
+  if (!el) return;
+  try {
+    var r = await fetch('/api/scheduled-tasks');
+    var data = await r.json();
+    var tasks = data.custom_tasks || [];
+    if (tasks.length === 0) {
+      el.innerHTML = '<div class="empty-state">No scheduled tasks. Create one to automate recurring work.</div>';
+      return;
+    }
+    el.innerHTML = '<div style="display:flex;flex-direction:column;gap:6px">' + tasks.map(function(t) {
+      return '<div style="padding:8px;border:1px solid var(--border);border-radius:6px;font-size:13px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center">' +
+        '<span style="font-weight:600">' + escHtml(t.name) + '</span>' +
+        '<span style="font-size:11px">' + (t.enabled ? '🟢' : '⚪') + '</span></div>' +
+        '<div style="color:var(--text-muted);font-size:12px">⏰ ' + escHtml(t.cron || '') + '</div>' +
+        '<div style="color:var(--text-muted);font-size:11px">💻 ' + escHtml((t.command || '').slice(0, 80)) + '</div></div>';
+    }).join('') + '</div>';
+  } catch(e) {
+    if (el) el.innerHTML = '<div class="error-state">' + e.message + '</div>';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// VOICE INPUT — Web Speech API
+// ═══════════════════════════════════════════════════════════════════════
+
+var recognition = null;
+var isListening = false;
+var voiceFinalText = '';
+var ttsEnabled = false;
+
+var speechSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+function toggleVoice() {
+  if (!speechSupported) {
+    showToast('Voice not supported. Use Chrome or Samsung Internet.', 'error');
+    return;
+  }
+  if (isListening) { stopVoice(); } else { startVoice(); }
+}
+
+function startVoice() {
+  try {
+    recognition = new SpeechRecognition();
+    recognition.lang = 'id-ID';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+
+    var btn = document.getElementById('voiceBtn');
+    var wave = document.getElementById('voiceWave');
+    var status = document.getElementById('voiceStatus');
+
+    btn.innerHTML = '<i class="fas fa-stop"></i>';
+    btn.className = 'voice-btn listening';
+    wave.classList.add('active');
+    status.style.display = 'flex';
+    status.innerHTML = '🎤 Dengar...';
+    isListening = true;
+    voiceFinalText = '';
+
+    recognition.onresult = function(event) {
+      var interim = '';
+      for (var i = event.resultIndex; i < event.results.length; i++) {
+        var t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) { voiceFinalText += t; }
+        else { interim = t; }
+      }
+      document.getElementById('statusText').textContent = '🎤 ' + (voiceFinalText + interim || '...');
+    };
+
+    recognition.onend = function() {
+      if (isListening) { try { recognition.start(); } catch(e) {} }
+      else { finishVoice(); }
+    };
+
+    recognition.onerror = function(event) {
+      if (event.error === 'no-speech') { try { recognition.start(); } catch(e) {} return; }
+      showToast('Voice: ' + event.error, 'error');
+      finishVoice();
+    };
+
+    recognition.start();
+  } catch(e) {
+    finishVoice();
+  }
+}
+
+function stopVoice() {
+  isListening = false;
+  if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
+  finishVoice();
+}
+
+function finishVoice() {
+  var btn = document.getElementById('voiceBtn');
+  var wave = document.getElementById('voiceWave');
+  var status = document.getElementById('voiceStatus');
+  btn.innerHTML = '<i class="fas fa-microphone"></i>';
+  btn.className = 'voice-btn';
+  wave.classList.remove('active');
+  status.style.display = 'none';
+
+  if (voiceFinalText && voiceFinalText.trim()) {
+    document.getElementById('chatInput').value = voiceFinalText.trim();
+    handleSend();
+  }
+  voiceFinalText = '';
+  isListening = false;
+}
+
+function toggleTTS() {
+  ttsEnabled = !ttsEnabled;
+  var btn = document.getElementById('ttsToggle');
+  if (ttsEnabled) {
+    btn.innerHTML = '<i class="fas fa-volume-up"></i>';
+    btn.className = 'tts-toggle active';
+    btn.title = 'Text-to-Speech: Aktif';
+    showToast('🔊 Suara aktif', 'info');
+  } else {
+    btn.innerHTML = '<i class="fas fa-volume-off"></i>';
+    btn.className = 'tts-toggle';
+    btn.title = 'Text-to-Speech: Nonaktif';
+    window.speechSynthesis.cancel();
+  }
+}
+
+function speakText(text) {
+  if (!ttsEnabled || !('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+
+  var clean = text
+    .replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1')
+    .replace(/```[\s\S]*?```/g, '').replace(/`([^`]+)`/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/https?:\/\/\S+/g, '')
+    .replace(/[#*_~>|`\-]/g, '').replace(/\n{3,}/g, '\n').trim();
+  if (!clean) return;
+
+  var chunks = [];
+  for (var i = 0; i < clean.length; i += 200) chunks.push(clean.slice(i, i + 200));
+
+  function speakChunk(idx) {
+    if (idx >= chunks.length) return;
+    var u = new SpeechSynthesisUtterance(chunks[idx]);
+    u.lang = 'id-ID'; u.rate = 1.0; u.pitch = 1.0;
+    u.onend = function() { speakChunk(idx + 1); };
+    window.speechSynthesis.speak(u);
+  }
+  speakChunk(0);
+}
+
+// Hook into chat to auto-speak responses
+var _origAddMessage = addMessage;
+addMessage = function(role, content) {
+  var result = _origAddMessage(role, content);
+  if (role === 'assistant' && ttsEnabled && content) {
+    setTimeout(function() { speakText(content); }, 300);
+  }
+  return result;
+};
+
+// Prime voices
+if ('speechSynthesis' in window) {
+  window.speechSynthesis.getVoices();
+  if (window.speechSynthesis.onvoiceschanged !== undefined) {
+    window.speechSynthesis.onvoiceschanged = function() { window.speechSynthesis.getVoices(); };
+  }
+}
+</script>
+</body>
+</html>
