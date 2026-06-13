@@ -1335,26 +1335,36 @@ function switchChartPeriod(period, e) {
   if (e && e.target) e.target.style.background = 'var(--surface-container-lowest)';
 }
 
+var _perfChart = null;
 function renderChart() {
   var el = document.getElementById('chart-performance');
-  if (!el) return;
+  if (!el || typeof ApexCharts === 'undefined') return;
+  var dark = document.documentElement.classList.contains('dark');
+  var axisColor = dark ? '#8d909f' : '#747685';
+  var gridColor = dark ? '#272a31' : '#eff4ff';
   var options = {
     series: [{ name: 'CPU Load', data: [31,40,28,51,42,65,45,58,42,38,55,42] },
              { name: 'RAM Usage', data: [11,32,45,32,34,52,41,38,45,30,48,52] }],
     chart: { height: 250, type: 'area', fontFamily: 'Plus Jakarta Sans, sans-serif',
-      toolbar: { show: false }, zoom: { enabled: false } },
+      toolbar: { show: false }, zoom: { enabled: false }, background: 'transparent' },
+    theme: { mode: dark ? 'dark' : 'light' },
     colors: ['#5D87FF', '#13DEB9'],
     dataLabels: { enabled: false },
     stroke: { curve: 'smooth', width: 2 },
     fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.3, opacityTo: 0.05, stops: [0,90,100] } },
     xaxis: { categories: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
       axisBorder: { show: false }, axisTicks: { show: false },
-      labels: { style: { colors: '#747685' } } },
-    yaxis: { labels: { style: { colors: '#747685' } } },
-    grid: { borderColor: '#eff4ff', strokeDashArray: 4 },
-    legend: { show: false }
+      labels: { style: { colors: axisColor } } },
+    yaxis: { labels: { style: { colors: axisColor } } },
+    grid: { borderColor: gridColor, strokeDashArray: 4 },
+    legend: { show: false },
+    tooltip: { theme: dark ? 'dark' : 'light' }
   };
-  try { new ApexCharts(el, options).render(); } catch(e) { console.log('Chart error:', e); }
+  try {
+    if (_perfChart) { _perfChart.destroy(); _perfChart = null; }
+    _perfChart = new ApexCharts(el, options);
+    _perfChart.render();
+  } catch(e) { console.log('Chart error:', e); }
 }
 
 function setupEventListeners() {
@@ -1411,6 +1421,10 @@ function toggleTheme() {
   var isDark = document.documentElement.classList.toggle('dark');
   localStorage.setItem('hub_theme', isDark ? 'dark' : 'light');
   updateThemeIcon(isDark);
+  // Re-render the performance chart with theme-appropriate colors
+  if (typeof renderChart === 'function' && document.getElementById('chart-performance')) {
+    renderChart();
+  }
   // Notify Odyssey of theme change
   var themeName = isDark ? 'dark' : 'light';
   fetch('/api/odyssey/prefs', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({theme: themeName}) }).catch(function(){});
