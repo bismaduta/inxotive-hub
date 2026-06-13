@@ -4,8 +4,10 @@ import requests
 import pandas as pd
 import ta
 from datetime import datetime
-import math, json, os, sys, threading
+import math, json, os, sys, threading, time
 from pathlib import Path
+
+HOME = str(Path.home())
 
 sys.path.insert(0, str(Path.home() / "inxotive-office" / "discord_bot"))
 sys.path.insert(0, str(Path.home() / "market-api"))
@@ -138,9 +140,13 @@ def alert_all(source: str, message: str, severity: str = "info"):
             threading.Thread(target=lambda: requests.post(WEBHOOK_URL, json=payload, timeout=10), daemon=True).start()
         except: pass
     # Also log to file
-    log_path = Path.home() / "logs" / "events.log"
-    with open(log_path, "a") as f:
-        f.write(f"[{severity.upper()}] [{source}] {message}\n")
+    try:
+        log_path = Path.home() / "logs" / "events.log"
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(log_path, "a") as f:
+            f.write(f"[{severity.upper()}] [{source}] {message}\n")
+    except OSError:
+        pass
 
 def safe_float(val):
     if val is None or (isinstance(val, float) and math.isnan(val)):
@@ -154,6 +160,8 @@ def get_technical_analysis(coin_id: str):
             timeout=15
         )
         data = r.json()
+        if "prices" not in data or len(data.get("prices", [])) < 14:
+            return {"error": f"CoinGecko data unavailable for {coin_id}"}
         prices = [p[1] for p in data["prices"]]
         volumes = [v[1] for v in data["total_volumes"]]
         df = pd.DataFrame({"close": prices, "volume": volumes})
@@ -191,8 +199,8 @@ def get_technical_analysis(coin_id: str):
             "trend": trend,
             "support": round(min(prices[-14:]), 2),
             "resistance": round(max(prices[-14:]), 2),
-            "change_7d": round((prices[-1]/prices[-7]-1)*100, 2),
-            "change_30d": round((prices[-1]/prices[0]-1)*100, 2)
+            "change_7d": round((prices[-1]/prices[-7]-1)*100, 2) if len(prices) >= 7 and prices[-7] else 0,
+            "change_30d": round((prices[-1]/prices[0]-1)*100, 2) if prices[0] else 0
         }
     except Exception as e:
         return {"error": str(e)}
@@ -444,43 +452,59 @@ async def get_leads():
     leads = [json.loads(l) for l in lines if l.strip()]
     return {"count": len(leads), "leads": leads[-20:]}
 
+def _status_blocking():
+    import shutil, os, subprocess
+    disk = shutil.disk_usage("/")
+    cpu = 0
+    try:
+        load = os.getloadavg()
+        ncpu = os.cpu_count() or 1
+        cpu = round((load[0] / ncpu) * 100, 1)
+    except Exception: pass
+    mem_total = mem_used = 0
+    try:
+        r = subprocess.run(["free", "-m"], capture_output=True, text=True, timeout=3)
+        for line in r.stdout.split("\n"):
+            if line.startswith("Mem:"):
+                parts = line.split()
+                mem_total = int(parts[1])
+                mem_used = int(parts[2])
+    except Exception: pass
+    uptime = "0"
+    try:
+        with open("/proc/uptime") as f:
+            uptime = f.read().split()[0]
+    except Exception: pass
+    return disk, cpu, mem_total, mem_used, uptime
+
+
 @app.get("/status")
 async def status():
-    import shutil, os, subprocess
-    checks = {}
     services = {
         "bot": (8080, "/"),
         "odysseus": (7000, "/"),
         "ollama": (11434, "/api/tags"),
         "casaos": (80, "/"),
     }
-    for name, (port, path) in services.items():
-        try:
-            r = requests.get(f"http://localhost:{port}{path}", timeout=5)
-            checks[name] = "up" if r.status_code < 500 else "down"
-        except:
-            checks[name] = "down"
-    disk = shutil.disk_usage("/")
-    # CPU load
-    cpu = 0
+    checks = {}
+    blocking_task = asyncio.create_task(asyncio.to_thread(_status_blocking))
     try:
-        load = os.getloadavg()
-        cpu = round((load[0] / os.cpu_count()) * 100, 1)
-    except: pass
-    # Memory
-    mem_total = mem_used = 0
-    try:
-        r = subprocess.run(["free", "-m"], capture_output=True, text=True)
-        for line in r.stdout.split("\n"):
-            if line.startswith("Mem:"):
-                parts = line.split()
-                mem_total = int(parts[1])
-                mem_used = int(parts[2])
-    except: pass
+        async with httpx.AsyncClient(timeout=4) as client:
+            async def chk(name, port, path):
+                try:
+                    r = await client.get(f"http://localhost:{port}{path}")
+                    return name, ("up" if r.status_code < 500 else "down")
+                except Exception:
+                    return name, "down"
+            results = await asyncio.gather(*[chk(n, p, pa) for n, (p, pa) in services.items()])
+            checks = dict(results)
+    except Exception:
+        checks = {n: "down" for n in services}
+    disk, cpu, mem_total, mem_used, uptime = await blocking_task
     return {
         "services": checks,
         "disk": f"{disk.free // (2**30)}GB free of {disk.total // (2**30)}GB total",
-        "uptime": open("/proc/uptime").read().split()[0],
+        "uptime": uptime,
         "system": {
             "cpu": f"{cpu}",
             "memory": f"{mem_used}/{mem_total}",
@@ -1282,7 +1306,12 @@ async def api_ui_comparison(data: dict):
 @app.get("/api/ui-audit/check")
 async def api_ui_check():
     """Check if Playwright is available for UI audit."""
-    return {"available": PLAYWRIGHT_AVAILABLE}
+    try:
+        import importlib.util
+        available = importlib.util.find_spec("playwright") is not None
+    except Exception:
+        available = False
+    return {"available": available}
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1677,25 +1706,29 @@ async def chat_via_9router(messages, agent, model, image=None):
 
 @app.get("/api/models")
 async def list_models():
-    """List available models from Ollama + 9Router."""
+    """List available models from Ollama + 9Router (non-blocking)."""
     models = []
+    api_key = os.environ.get("NINE_ROUTER_API_KEY") or os.environ.get("ROUTER_API_KEY", "")
+    headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+    async with httpx.AsyncClient(timeout=5) as client:
+        ollama_r, router_r = await asyncio.gather(
+            client.get("http://localhost:11434/api/tags"),
+            client.get("http://localhost:20128/v1/models", headers=headers),
+            return_exceptions=True,
+        )
     # Ollama models
     try:
-        r = requests.get("http://localhost:11434/api/tags", timeout=5)
-        if r.ok:
-            for m in r.json().get("models", []):
+        if not isinstance(ollama_r, Exception) and ollama_r.status_code < 400:
+            for m in ollama_r.json().get("models", []):
                 name = m.get("name", "")
                 if name:
                     models.append({"id": "ollama/"+name, "provider": "Ollama", "local": True})
-    except:
+    except Exception:
         pass
     # 9Router models — fetch from their /v1/models API
     try:
-        api_key = os.environ.get("NINE_ROUTER_API_KEY") or os.environ.get("ROUTER_API_KEY", "")
-        headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
-        r = requests.get("http://localhost:20128/v1/models", headers=headers, timeout=5)
-        if r.ok:
-            for m in r.json().get("data", []):
+        if not isinstance(router_r, Exception) and router_r.status_code < 400:
+            for m in router_r.json().get("data", []):
                 mid = m.get("id", "")
                 owner = m.get("owned_by", "")
                 if mid:
@@ -1755,7 +1788,8 @@ async def update_session_title(sid: str, data: dict):
         sessions[sid]["title"] = data.get("title", "Chat")
         save_sessions(sessions)
         return {"ok": True}
-    return {"error": "not found"}, 404
+    from fastapi.responses import JSONResponse
+    return JSONResponse({"error": "not found"}, status_code=404)
 
 # ── SSE Streaming Chat ──
 
@@ -2275,9 +2309,9 @@ async def exec_command(data: dict):
 async def list_files(path: str = ""):
     """List directory contents. Path relatif ke /home/bisma."""
     import stat as stat_module
-    base = Path.home()
+    base = Path.home().resolve()
     target = (base / path.lstrip("/")).resolve()
-    if not str(target).startswith(str(base)):
+    if target != base and base not in target.parents:
         return {"error": "Access denied", "items": []}
     if not target.exists():
         return {"error": "Not found", "items": []}
@@ -2308,9 +2342,9 @@ async def list_files(path: str = ""):
 @app.get("/api/files/read")
 async def read_file_content(path: str = ""):
     """Read text file content, max 100KB."""
-    base = Path.home()
+    base = Path.home().resolve()
     target = (base / path.lstrip("/")).resolve()
-    if not str(target).startswith(str(base)):
+    if target != base and base not in target.parents:
         return {"error": "Access denied"}
     if not target.is_file():
         return {"error": "Not a file"}
@@ -2324,9 +2358,8 @@ async def read_file_content(path: str = ""):
 
 # ── Ecosystem Endpoints ──
 
-@app.get("/api/ecosystem")
-async def ecosystem_overview():
-    """Aggregator: semua data ekosistem dalam 1 call."""
+def _ecosystem_blocking():
+    """Blocking parts of the ecosystem aggregator (run in a worker thread)."""
     import subprocess, json
     services = {"bot": "down", "odysseus": "down", "ollama": "down",
                 "market-api": "up", "qdrant": "down", "n8n": "down",
@@ -2334,7 +2367,6 @@ async def ecosystem_overview():
     system = {"cpu": "0", "memory": "0/0", "disk": "0"}
     uptime = 0
     try:
-        # Use subprocess to get system info directly
         cpu_r = subprocess.run(["bash", "-c", "top -bn1 | grep 'Cpu(s)' | awk '{print $2}'"],
             capture_output=True, text=True, timeout=3)
         if cpu_r.returncode == 0 and cpu_r.stdout.strip():
@@ -2351,40 +2383,11 @@ async def ecosystem_overview():
             capture_output=True, text=True, timeout=3)
         if uptime_r.returncode == 0 and uptime_r.stdout.strip():
             uptime = float(uptime_r.stdout.strip())
-        # Check services via systemctl
         for svc in ["inxotive-bot", "odysseus", "ollama"]:
             sr = subprocess.run(["systemctl", "is-active", svc],
                 capture_output=True, text=True, timeout=3)
             services[svc.replace("inxotive-", "")] = "up" if "active" in sr.stdout else "down"
-    except: pass
-
-    health = {}
-    targets = [
-        ("odysseus", "http://localhost:7000/api/health"),
-        ("ollama", "http://localhost:11434/api/tags"),
-        ("qdrant", "http://localhost:6333/collections"),
-        ("wa-bridge", "http://localhost:3002/health"),
-        ("n8n", "http://localhost:5678/healthz"),
-        ("uptime-kuma", "http://localhost:3001"),
-        ("meilisearch", "http://localhost:7700/health"),
-    ]
-    for name, url in targets:
-        try:
-            r2 = requests.get(url, timeout=3)
-            health[name] = {"status": "up" if r2.ok else "down", "code": r2.status_code}
-        except:
-            health[name] = {"status": "down", "code": 0}
-
-    try:
-        r3 = requests.get("http://localhost:20128/v1/models", timeout=3,
-            headers={"Authorization": f"Bearer {os.environ.get('NINE_ROUTER_API_KEY','')}"})
-        if r3.ok:
-            ml = r3.json().get("data", [])
-            health["9router"] = {"status": "up", "models": len(ml)}
-        else:
-            health["9router"] = {"status": "down", "code": r3.status_code}
-    except:
-        health["9router"] = {"status": "down", "code": 0}
+    except Exception: pass
 
     docker = []
     try:
@@ -2397,7 +2400,7 @@ async def ecosystem_overview():
                 p = line.split("|")
                 docker.append({"name": p[0], "image": p[1] if len(p)>1 else "",
                               "status": p[2] if len(p)>2 else ""})
-    except: pass
+    except Exception: pass
 
     market = {}
     try:
@@ -2412,14 +2415,13 @@ async def ecosystem_overview():
                 market["eth"] = eth_data.get("usd", 0)
         fg = md.get("fear_greed", {})
         market["fear_greed"] = fg.get("value", "N/A") if isinstance(fg, dict) else "N/A"
-    except: pass
+    except Exception: pass
 
     events = []
     try:
         if EVENT_BUS.exists():
-            all_ev = json.loads(EVENT_BUS.read_text())
-            events = all_ev[-10:]
-    except: pass
+            events = json.loads(EVENT_BUS.read_text())[-10:]
+    except Exception: pass
 
     heal = {}
     try:
@@ -2432,7 +2434,55 @@ async def ecosystem_overview():
                 "active_rules": len(hd.get("rules", [])),
                 "last_analysis": hd.get("last_analysis", ""),
             }
-    except: pass
+    except Exception: pass
+    return services, system, uptime, docker, market, events, heal
+
+
+async def _check_health(client, name, url):
+    try:
+        r = await client.get(url)
+        return name, {"status": "up" if r.status_code < 400 else "down", "code": r.status_code}
+    except Exception:
+        return name, {"status": "down", "code": 0}
+
+
+@app.get("/api/ecosystem")
+async def ecosystem_overview():
+    """Aggregator: semua data ekosistem dalam 1 call (non-blocking)."""
+    # HTTP health checks run concurrently; blocking subprocess/file IO on a thread.
+    targets = [
+        ("odysseus", "http://localhost:7000/api/health"),
+        ("ollama", "http://localhost:11434/api/tags"),
+        ("qdrant", "http://localhost:6333/collections"),
+        ("wa-bridge", "http://localhost:3002/health"),
+        ("n8n", "http://localhost:5678/healthz"),
+        ("uptime-kuma", "http://localhost:3001"),
+        ("meilisearch", "http://localhost:7700/health"),
+    ]
+    health = {}
+    blocking_task = asyncio.create_task(asyncio.to_thread(_ecosystem_blocking))
+    try:
+        async with httpx.AsyncClient(timeout=3) as client:
+            results = await asyncio.gather(*[_check_health(client, n, u) for n, u in targets])
+            for name, info in results:
+                health[name] = info
+            try:
+                r3 = await client.get("http://localhost:20128/v1/models",
+                    headers={"Authorization": f"Bearer {os.environ.get('NINE_ROUTER_API_KEY','')}"})
+                if r3.status_code < 400:
+                    health["9router"] = {"status": "up", "models": len(r3.json().get("data", []))}
+                else:
+                    health["9router"] = {"status": "down", "code": r3.status_code}
+            except Exception:
+                health["9router"] = {"status": "down", "code": 0}
+    except Exception:
+        pass
+
+    services, system, uptime, docker, market, events, heal = await blocking_task
+    # Reconcile services dict with live health probes so it isn't permanently "down"
+    for key, hname in (("qdrant", "qdrant"), ("n8n", "n8n"), ("wa-bridge", "wa-bridge"), ("9router", "9router")):
+        if health.get(hname, {}).get("status") == "up":
+            services[key] = "up"
 
     return {
         "services": services, "health": health, "system": system,
@@ -2441,24 +2491,28 @@ async def ecosystem_overview():
         "timestamp": datetime.now().isoformat(),
     }
 
+def _docker_ps_blocking():
+    import subprocess
+    r = subprocess.run(
+        ["docker", "ps", "--format", "{{.Names}}|{{.Image}}|{{.Status}}|{{.Ports}}|{{.CreatedAt}}|{{.Size}}"],
+        capture_output=True, text=True, timeout=5)
+    if r.returncode != 0:
+        return {"containers": [], "error": r.stderr}
+    containers = []
+    for line in r.stdout.strip().split("\n"):
+        if not line.strip(): continue
+        p = line.split("|")
+        containers.append({"name": p[0], "image": p[1] if len(p)>1 else "",
+            "status": p[2] if len(p)>2 else "", "ports": p[3] if len(p)>3 else "",
+            "created": p[4] if len(p)>4 else "", "size": p[5] if len(p)>5 else ""})
+    return {"containers": containers, "total": len(containers)}
+
+
 @app.get("/api/docker/ps")
 async def docker_ps():
-    """Docker containers list."""
-    import subprocess
+    """Docker containers list (non-blocking)."""
     try:
-        r = subprocess.run(
-            ["docker", "ps", "--format", "{{.Names}}|{{.Image}}|{{.Status}}|{{.Ports}}|{{.CreatedAt}}|{{.Size}}"],
-            capture_output=True, text=True, timeout=5)
-        if r.returncode != 0:
-            return {"containers": [], "error": r.stderr}
-        containers = []
-        for line in r.stdout.strip().split("\n"):
-            if not line.strip(): continue
-            p = line.split("|")
-            containers.append({"name": p[0], "image": p[1] if len(p)>1 else "",
-                "status": p[2] if len(p)>2 else "", "ports": p[3] if len(p)>3 else "",
-                "created": p[4] if len(p)>4 else "", "size": p[5] if len(p)>5 else ""})
-        return {"containers": containers, "total": len(containers)}
+        return await asyncio.to_thread(_docker_ps_blocking)
     except Exception as e:
         return {"containers": [], "error": str(e)}
 
@@ -2466,21 +2520,21 @@ async def docker_ps():
 async def wa_status():
     """WhatsApp Bridge connection status + QR code."""
     try:
-        r = requests.get("http://localhost:3002/health", timeout=3)
-        if r.ok:
-            result = r.json()
-            # Try to fetch QR image if available
-            if result.get("qr"):
-                try:
-                    async with httpx.AsyncClient(timeout=5) as client:
+        async with httpx.AsyncClient(timeout=3) as client:
+            r = await client.get("http://localhost:3002/health")
+            if r.status_code < 400:
+                result = r.json()
+                # Try to fetch QR image if available
+                if result.get("qr"):
+                    try:
                         qr_resp = await client.get("http://localhost:3002/qrcode.png")
                         if qr_resp.status_code == 200:
                             import base64
                             result["qr_base64"] = f"data:image/png;base64,{base64.b64encode(qr_resp.content).decode()}"
-                except Exception:
-                    pass
-            return result
-        return {"connected": False, "qr": False, "error": f"HTTP {r.status_code}"}
+                    except Exception:
+                        pass
+                return result
+            return {"connected": False, "qr": False, "error": f"HTTP {r.status_code}"}
     except Exception as e:
         return {"connected": False, "qr": False, "error": str(e)}
 
@@ -2498,45 +2552,48 @@ async def wa_qr():
     except Exception:
         return {"qr": False}
 
+def _market_overview_blocking():
+    """Blocking market snapshot (run in a worker thread)."""
+    market = get_market_data()
+    btc_ta = get_technical_analysis("bitcoin")
+    news = []
+    try:
+        r = requests.get(
+            "https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fcointelegraph.com%2Frss",
+            timeout=5)
+        if r.ok:
+            news = [{"title": i.get("title",""), "url": i.get("link",""),
+                     "source": "CoinTelegraph"} for i in r.json().get("items",[])][:8]
+    except Exception:
+        try:
+            r2 = requests.get("https://min-api.cryptocompare.com/data/v2/news/?lang=EN&limit=8",
+                             timeout=5)
+            if r2.ok:
+                news = [{"title": i.get("title",""), "url": i.get("url",""),
+                         "source": "CryptoCompare"} for i in r2.json().get("Data",[])]
+        except Exception: pass
+    crypto = market.get("crypto", {})
+    coins = {}
+    for name, data in crypto.items():
+        if isinstance(data, dict) and "usd" in data:
+            coins[name] = {"usd": data.get("usd"), "idr": data.get("idr"),
+                "change_24h": data.get("usd_24h_change"),
+                "market_cap": data.get("usd_market_cap")}
+    fg = market.get("fear_greed", {})
+    return {
+        "coins": coins,
+        "fear_greed": fg if isinstance(fg, dict) else {"value": "N/A"},
+        "trending": market.get("trending", ""),
+        "btc_technical": btc_ta,
+        "news": news[:8],
+    }
+
+
 @app.get("/api/market/overview")
 async def market_overview():
-    """Market snapshot: prices, technicals, news."""
+    """Market snapshot: prices, technicals, news (non-blocking)."""
     try:
-        # Use internal functions instead of HTTP self-calls
-        market = get_market_data()
-        btc_ta = get_technical_analysis("bitcoin")
-        # News from RSS
-        news = []
-        try:
-            r = requests.get(
-                "https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fcointelegraph.com%2Frss",
-                timeout=5)
-            if r.ok:
-                news = [{"title": i.get("title",""), "url": i.get("link",""),
-                         "source": "CoinTelegraph"} for i in r.json().get("items",[])][:8]
-        except:
-            try:
-                r2 = requests.get("https://min-api.cryptocompare.com/data/v2/news/?lang=EN&limit=8",
-                                 timeout=5)
-                if r2.ok:
-                    news = [{"title": i.get("title",""), "url": i.get("url",""),
-                             "source": "CryptoCompare"} for i in r2.json().get("Data",[])]
-            except: pass
-        crypto = market.get("crypto", {})
-        coins = {}
-        for name, data in crypto.items():
-            if isinstance(data, dict) and "usd" in data:
-                coins[name] = {"usd": data.get("usd"), "idr": data.get("idr"),
-                    "change_24h": data.get("usd_24h_change"),
-                    "market_cap": data.get("usd_market_cap")}
-        fg = market.get("fear_greed", {})
-        return {
-            "coins": coins,
-            "fear_greed": fg if isinstance(fg, dict) else {"value": "N/A"},
-            "trending": market.get("trending", ""),
-            "btc_technical": btc_ta,
-            "news": news[:8],
-        }
+        return await asyncio.to_thread(_market_overview_blocking)
     except Exception as e:
         return {"error": str(e)}
 
@@ -2606,6 +2663,21 @@ async def odyssey_post(path: str, data: dict = {}):
         cookies = {"odysseus_session": _ODYSSEY_COOKIE, "csrf_token": _ODYSSEY_CSRF}
         if _ODYSSEY_CSRF: cookies["csrf_token"] = _ODYSSEY_CSRF
         r = requests.post(f"http://localhost:7000/api/{path}",
+            json=data, cookies=cookies, timeout=10,
+            headers={"Content-Type": "application/json"})
+        return r.json() if r.text else {}
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.put("/api/odyssey/{path:path}")
+async def odyssey_put(path: str, data: dict = {}):
+    """Proxy PUT to Odysseus API (used for prefs/theme sync)."""
+    if not _odyssey_ensure_auth():
+        return {"error": "Odysseus unavailable"}
+    try:
+        cookies = {"odysseus_session": _ODYSSEY_COOKIE}
+        if _ODYSSEY_CSRF: cookies["csrf_token"] = _ODYSSEY_CSRF
+        r = requests.put(f"http://localhost:7000/api/{path}",
             json=data, cookies=cookies, timeout=10,
             headers={"Content-Type": "application/json"})
         return r.json() if r.text else {}
