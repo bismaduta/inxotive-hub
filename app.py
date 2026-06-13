@@ -1615,13 +1615,14 @@ async def chat_endpoint(data: dict):
                 ollama_messages.append({"role": role, "content": content})
     
     try:
-        r = requests.post("http://localhost:11434/api/chat", json={
-            "model": model.replace("ollama/", ""),
-            "messages": ollama_messages,
-            "stream": False,
-            "options": {"temperature": 0.7, "num_predict": 1024}
-        }, timeout=90)
-        if r.ok:
+        async with httpx.AsyncClient(timeout=90) as client:
+            r = await client.post("http://localhost:11434/api/chat", json={
+                "model": model.replace("ollama/", ""),
+                "messages": ollama_messages,
+                "stream": False,
+                "options": {"temperature": 0.7, "num_predict": 1024}
+            })
+        if r.status_code < 400:
             result = r.json()
             reply = result.get("message", {}).get("content", "")
             return {"reply": reply, "agent": agent, "model": model}
@@ -1647,13 +1648,14 @@ async def chat_fast(data: dict):
             c = msg.get("content", "")
             if c: ollama_msgs.append({"role": r, "content": c})
     try:
-        r = requests.post("http://localhost:11434/api/chat", json={
-            "model": model.replace("ollama/", ""),
-            "messages": ollama_msgs,
-            "stream": False,
-            "options": {"temperature": 0.7, "num_predict": 512}
-        }, timeout=45)
-        if r.ok:
+        async with httpx.AsyncClient(timeout=45) as client:
+            r = await client.post("http://localhost:11434/api/chat", json={
+                "model": model.replace("ollama/", ""),
+                "messages": ollama_msgs,
+                "stream": False,
+                "options": {"temperature": 0.7, "num_predict": 512}
+            })
+        if r.status_code < 400:
             result = r.json()
             reply = result.get("message", {}).get("content", "")
             return {"reply": reply, "agent": agent, "model": model}
@@ -1676,13 +1678,14 @@ async def chat_via_9router(messages, agent, model, image=None):
             if c: ollama_msgs.append({"role": r, "content": c})
     try:
         api_key = os.environ.get("NINE_ROUTER_API_KEY") or os.environ.get("ROUTER_API_KEY", "")
-        r = requests.post("http://localhost:20128/v1/chat/completions", json={
-            "model": model_name,
-            "messages": ollama_msgs,
-            "stream": False,
-            "max_tokens": 4096,
-        }, headers={"Authorization": f"Bearer {api_key}"}, timeout=120)
-        if r.ok:
+        async with httpx.AsyncClient(timeout=120) as client:
+            r = await client.post("http://localhost:20128/v1/chat/completions", json={
+                "model": model_name,
+                "messages": ollama_msgs,
+                "stream": False,
+                "max_tokens": 4096,
+            }, headers={"Authorization": f"Bearer {api_key}"})
+        if r.status_code < 400:
             body = r.text
             # Find JSON end via brace-matching (reasoning_content may contain 'data:' string)
             depth = 0
