@@ -2287,23 +2287,39 @@ async def deploy(data: dict):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+import re as _re_exec
+# Whitespace-insensitive patterns for obviously destructive commands.
+_DANGEROUS_PATTERNS = [
+    r"\brm\s+(-[a-z]*\s+)*-?[a-z]*[rf][a-z]*\s+(/|~|\$home|/home|/etc|/usr|/var|/boot|/bin|/lib)(\s|/|\*|$)",
+    r"\bmkfs\b", r"\bdd\b.*\bof=/dev/", r":\(\)\s*\{.*\|.*&.*\}.*;.*:",
+    r">\s*/dev/(sd|nvme|hd|vd)", r"\bchmod\s+(-[a-z]*\s+)*777\s+/(\s|$)",
+    r"\bmv\s+/\s", r"\b(shutdown|reboot|halt|poweroff)\b",
+    r">\s*/dev/sda", r"\bwipefs\b", r"\bfdisk\b",
+]
+
+def _is_dangerous(cmd: str) -> bool:
+    norm = _re_exec.sub(r"\s+", " ", cmd.strip().lower())
+    return any(_re_exec.search(p, norm) for p in _DANGEROUS_PATTERNS)
+
+def _exec_blocking(cmd: str):
+    import subprocess
+    result = subprocess.run(
+        ["bash", "-c", cmd],
+        capture_output=True, text=True, timeout=30,
+        cwd=str(Path.home())
+    )
+    return {"stdout": result.stdout[-2000:], "stderr": result.stderr[-2000:], "code": result.returncode}
+
 @app.post("/exec")
 async def exec_command(data: dict):
     cmd = data.get("cmd", "").strip()
     if not cmd:
         return {"stdout": "", "stderr": "No command provided"}
-    dangerous = ["rm -rf /*", "mkfs", "dd if=", ":(){ :|:& };:", "> /dev/sda", "chmod 777 /"]
-    if any(d in cmd for d in dangerous):
-        return {"stdout": "", "stderr": "Command blocked for safety"}
+    if _is_dangerous(cmd):
+        return {"stdout": "", "stderr": "Command blocked for safety", "code": -1}
     try:
-        import subprocess
-        result = subprocess.run(
-            ["bash", "-c", cmd],
-            capture_output=True, text=True, timeout=30,
-            cwd=str(Path.home())
-        )
-        return {"stdout": result.stdout[-2000:], "stderr": result.stderr[-2000:], "code": result.returncode}
-    except subprocess.TimeoutExpired:
+        return await asyncio.to_thread(_exec_blocking, cmd)
+    except __import__("subprocess").TimeoutExpired:
         return {"stdout": "", "stderr": "Command timed out (30s)", "code": -1}
     except Exception as e:
         return {"stdout": "", "stderr": str(e), "code": -1}
