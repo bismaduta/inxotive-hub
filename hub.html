@@ -490,61 +490,6 @@ body { background: #F4F5FA; color: #061c34; overflow: hidden; -webkit-font-smoot
 }
 @media (max-width:1200px) { .stats-grid,.grid-4,.grid-5 { grid-template-columns:repeat(2,1fr); } .grid-3 { grid-template-columns:1fr; } }
 
-/* ── Voice Command Center ── */
-.voice-cmd-palette { display: none; position: absolute; bottom: 80px; left: 12px; right: 12px; z-index: 999; background: var(--surface-container-lowest); border: 1px solid var(--outline-variant); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); overflow: hidden; max-height: 380px; }
-.voice-cmd-palette.active { display: flex; flex-direction: column; }
-.voice-cmd-header { padding: 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--outline-variant); }
-.voice-cmd-mic { width: 40px; height: 40px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: all .3s; background: var(--primary); color: #fff; flex-shrink: 0; }
-.voice-cmd-mic.listening { background: #ef4444; animation: vcPulse 1s infinite; }
-@keyframes vcPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); } 50% { box-shadow: 0 0 0 12px rgba(239,68,68,0.1); } }
-.voice-cmd-transcript { flex: 1; font-size: 14px; color: var(--on-surface); line-height: 1.4; min-height: 20px; max-height: 48px; overflow-y: auto; }
-.voice-cmd-transcript .interim { color: var(--text-muted,#94a3b8); }
-.voice-cmd-transcript .final { color: var(--on-surface); }
-.voice-cmd-badge { font-size: 10px; padding: 2px 10px; border-radius: 10px; font-weight: 600; background: rgba(93,135,255,0.1); color: var(--primary); white-space: nowrap; }
-.voice-cmd-badge.command { background: rgba(34,197,94,0.1); color: #22c55e; }
-.voice-cmd-badge.ai { background: rgba(245,158,11,0.1); color: #f59e0b; }
-.voice-cmd-badge.error { background: rgba(239,68,68,0.1); color: #ef4444; }
-.voice-cmd-commands { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 16px 12px; border-top: 1px solid var(--outline-variant); }
-.voice-cmd-chip { font-size: 11px; padding: 4px 12px; border-radius: 14px; border: 1px solid var(--outline-variant); background: var(--surface-container); color: var(--on-surface-variant); cursor: pointer; transition: all .15s; white-space: nowrap; }
-.voice-cmd-chip:hover { border-color: var(--primary); color: var(--primary); background: rgba(93,135,255,0.05); }
-.voice-cmd-chip .key { font-weight: 700; color: var(--primary); }
-.voice-cmd-result { padding: 10px 16px; font-size: 13px; line-height: 1.5; max-height: 120px; overflow-y: auto; background: var(--surface-container-low); border-top: 1px solid var(--outline-variant); color: var(--on-surface); white-space: pre-wrap; }
-.voice-cmd-close { width: 28px; height: 28px; border-radius: 6px; border: none; background: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; }
-.voice-cmd-close:hover { background: var(--surface-container); color: var(--on-surface); }
-</style>
-</head>
-<body>
-<div class="app">
-  <!-- Sidebar -->
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-  <!-- Mini Rail (Level 1) -->
-<aside class="mini-rail" id="miniRail" style="background:var(--surface);border-right:1px solid var(--outline-variant);display:flex;flex-direction:column;align-items:center;padding:24px 0;position:relative">
-  <div style="margin-bottom:32px">
-    <span class="material-symbols-outlined" style="font-size:32px;color:#5D87FF;font-weight:700">hub</span>
-  </div>
-  <nav style="flex:1;width:100%;display:flex;flex-direction:column;gap:12px;align-items:center">
-    <button data-page="overview" class="rail-btn active" onclick="navigateTo('overview')" style="width:48px;height:48px;border-radius:12px;border:none;background:var(--primary-container);color:var(--on-primary-container);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s">
-      <span class="material-symbols-outlined fill-icon" style="font-size:24px;font-variation-settings:'FILL' 1">dashboard</span>
-    </button>
-    <button data-page="chat" class="rail-btn" onclick="navigateTo('chat')" style="width:48px;height:48px;border-radius:12px;border:none;background:transparent;color:var(--sidebar-icon, #7C8FAC);cursor:pointer;display:flex;align-items:center;justify-content:center">
-      <span class="material-symbols-outlined" style="font-size:24px">chat</span>
-    </button>
-    <button data-page="brain" class="rail-btn" onclick="navigateTo('brain')" style="width:48px;height:48px;border-radius:12px;border:none;background:transparent;color:var(--sidebar-icon, #7C8FAC);cursor:pointer;display:flex;align-items:center;justify-content:center">
-      <span class="material-symbols-outlined" style="font-size:24px">psychology</span>
-    </button>
-    <button data-page="market" class="rail-btn" onclick="navigateTo('market')" style="width:48px;height:48px;border-radius:12px;border:none;background:transparent;color:var(--sidebar-icon, #7C8FAC);cursor:pointer;display:flex;align-items:center;justify-content:center">
-      <span class="material-symbols-outlined" style="font-size:24px">monitoring</span>
-    </button>
-    <button data-page="terminal" class="rail-btn" onclick="navigateTo('terminal')" style="width:48px;height:48px;border-radius:12px;border:none;background:transparent;color:var(--sidebar-icon, #7C8FAC);cursor:pointer;display:flex;align-items:center;justify-content:center">
-      <span class="material-symbols-outlined" style="font-size:24px">terminal</span>
-    </button>
-    <button data-page="settings" class="rail-btn" onclick="navigateTo('settings')" style="width:48px;height:48px;border-radius:12px;border:none;background:transparent;color:var(--sidebar-icon, #7C8FAC);cursor:pointer;display:flex;align-items:center;justify-content:center">
-      <span class="material-symbols-outlined" style="font-size:24px">settings</span>
-    </button>
-  </nav>
-  <div style="width:40px;height:40px;border-radius:50%;margin-top:auto;border:2px solid var(--surface-container);background:#5D87FF;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:600">BI</div>
-</aside>
-
 <!-- Sidebar (Level 2) -->
 <aside class="sidebar" id="sidebar" style="background:var(--sidebar-bg,#fff);display:flex;flex-direction:column;border-right:1px solid var(--outline-variant);transition:transform .3s ease">
   <div style="padding:24px 24px 16px;border-bottom:1px solid var(--outline-variant)">
@@ -4053,4 +3998,58 @@ if ('speechSynthesis' in window) {
 }
 </script>
 </body>
-</html>
+</html>/* ── Voice Command Center ── */
+.voice-cmd-palette { display: none; position: absolute; bottom: 80px; left: 12px; right: 12px; z-index: 999; background: var(--surface-container-lowest); border: 1px solid var(--outline-variant); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); overflow: hidden; max-height: 380px; }
+.voice-cmd-palette.active { display: flex; flex-direction: column; }
+.voice-cmd-header { padding: 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--outline-variant); }
+.voice-cmd-mic { width: 40px; height: 40px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: all .3s; background: var(--primary); color: #fff; flex-shrink: 0; }
+.voice-cmd-mic.listening { background: #ef4444; animation: vcPulse 1s infinite; }
+@keyframes vcPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); } 50% { box-shadow: 0 0 0 12px rgba(239,68,68,0.1); } }
+.voice-cmd-transcript { flex: 1; font-size: 14px; color: var(--on-surface); line-height: 1.4; min-height: 20px; max-height: 48px; overflow-y: auto; }
+.voice-cmd-transcript .interim { color: var(--text-muted,#94a3b8); }
+.voice-cmd-transcript .final { color: var(--on-surface); }
+.voice-cmd-badge { font-size: 10px; padding: 2px 10px; border-radius: 10px; font-weight: 600; background: rgba(93,135,255,0.1); color: var(--primary); white-space: nowrap; }
+.voice-cmd-badge.command { background: rgba(34,197,94,0.1); color: #22c55e; }
+.voice-cmd-badge.ai { background: rgba(245,158,11,0.1); color: #f59e0b; }
+.voice-cmd-badge.error { background: rgba(239,68,68,0.1); color: #ef4444; }
+.voice-cmd-commands { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 16px 12px; border-top: 1px solid var(--outline-variant); }
+.voice-cmd-chip { font-size: 11px; padding: 4px 12px; border-radius: 14px; border: 1px solid var(--outline-variant); background: var(--surface-container); color: var(--on-surface-variant); cursor: pointer; transition: all .15s; white-space: nowrap; }
+.voice-cmd-chip:hover { border-color: var(--primary); color: var(--primary); background: rgba(93,135,255,0.05); }
+.voice-cmd-chip .key { font-weight: 700; color: var(--primary); }
+.voice-cmd-result { padding: 10px 16px; font-size: 13px; line-height: 1.5; max-height: 120px; overflow-y: auto; background: var(--surface-container-low); border-top: 1px solid var(--outline-variant); color: var(--on-surface); white-space: pre-wrap; }
+.voice-cmd-close { width: 28px; height: 28px; border-radius: 6px; border: none; background: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.voice-cmd-close:hover { background: var(--surface-container); color: var(--on-surface); }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <!-- Mini Rail (Level 1) -->
+<aside class="mini-rail" id="miniRail" style="background:var(--surface);border-right:1px solid var(--outline-variant);display:flex;flex-direction:column;align-items:center;padding:24px 0;position:relative">
+  <div style="margin-bottom:32px">
+    <span class="material-symbols-outlined" style="font-size:32px;color:#5D87FF;font-weight:700">hub</span>
+  </div>
+  <nav style="flex:1;width:100%;display:flex;flex-direction:column;gap:12px;align-items:center">
+    <button data-page="overview" class="rail-btn active" onclick="navigateTo('overview')" style="width:48px;height:48px;border-radius:12px;border:none;background:var(--primary-container);color:var(--on-primary-container);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s">
+      <span class="material-symbols-outlined fill-icon" style="font-size:24px;font-variation-settings:'FILL' 1">dashboard</span>
+    </button>
+    <button data-page="chat" class="rail-btn" onclick="navigateTo('chat')" style="width:48px;height:48px;border-radius:12px;border:none;background:transparent;color:var(--sidebar-icon, #7C8FAC);cursor:pointer;display:flex;align-items:center;justify-content:center">
+      <span class="material-symbols-outlined" style="font-size:24px">chat</span>
+    </button>
+    <button data-page="brain" class="rail-btn" onclick="navigateTo('brain')" style="width:48px;height:48px;border-radius:12px;border:none;background:transparent;color:var(--sidebar-icon, #7C8FAC);cursor:pointer;display:flex;align-items:center;justify-content:center">
+      <span class="material-symbols-outlined" style="font-size:24px">psychology</span>
+    </button>
+    <button data-page="market" class="rail-btn" onclick="navigateTo('market')" style="width:48px;height:48px;border-radius:12px;border:none;background:transparent;color:var(--sidebar-icon, #7C8FAC);cursor:pointer;display:flex;align-items:center;justify-content:center">
+      <span class="material-symbols-outlined" style="font-size:24px">monitoring</span>
+    </button>
+    <button data-page="terminal" class="rail-btn" onclick="navigateTo('terminal')" style="width:48px;height:48px;border-radius:12px;border:none;background:transparent;color:var(--sidebar-icon, #7C8FAC);cursor:pointer;display:flex;align-items:center;justify-content:center">
+      <span class="material-symbols-outlined" style="font-size:24px">terminal</span>
+    </button>
+    <button data-page="settings" class="rail-btn" onclick="navigateTo('settings')" style="width:48px;height:48px;border-radius:12px;border:none;background:transparent;color:var(--sidebar-icon, #7C8FAC);cursor:pointer;display:flex;align-items:center;justify-content:center">
+      <span class="material-symbols-outlined" style="font-size:24px">settings</span>
+    </button>
+  </nav>
+  <div style="width:40px;height:40px;border-radius:50%;margin-top:auto;border:2px solid var(--surface-container);background:#5D87FF;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:600">BI</div>
+</aside>
+
