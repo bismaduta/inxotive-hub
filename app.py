@@ -4,13 +4,21 @@ import requests
 import pandas as pd
 import ta
 from datetime import datetime
-import math, json, os, sys, threading, time
+import math, json, os, sys, threading
 from pathlib import Path
-
-HOME = str(Path.home())
 
 sys.path.insert(0, str(Path.home() / "inxotive-office" / "discord_bot"))
 sys.path.insert(0, str(Path.home() / "market-api"))
+
+# ── REASONING ENGINE ──
+try:
+    from reasoning_engine import MODEL_CONTRACT, decide_routing, after_task_complete, cache_stats, classify_task
+    REASONING_AVAILABLE = True
+    print("[RE] Reasoning engine loaded")
+except ImportError as e:
+    REASONING_AVAILABLE = False
+    print(f"[RE] Reasoning engine unavailable: {e}")
+# ──────────────────────
 
 # ── YouTube Service ──
 from youtube_service import (
@@ -59,6 +67,27 @@ def save_sessions(sessions: dict) -> None:
     SESSIONS_FILE.write_text(json.dumps(sessions, indent=2, ensure_ascii=False))
 
 app = FastAPI()
+
+# ── Auth ──
+HUB_TOKEN = os.environ.get("HUB_TOKEN", "")
+
+from fastapi import Header, HTTPException, Depends
+
+async def require_token(authorization: str = Header(None)):
+    if HUB_TOKEN:
+        if not authorization or authorization != f"Bearer {HUB_TOKEN}":
+            raise HTTPException(401, "Unauthorized — provide Bearer token")
+
+ALLOWED_COMMANDS = {
+    "ls", "cat", "df", "free", "uptime", "systemctl", "docker", "journalctl",
+    "tail", "head", "grep", "find", "du", "hostname", "whoami", "date",
+    "curl", "ping", "ps", "top", "htop", "ip", "ss", "nslookup", "dig",
+    "echo", "which", "python3", "node", "npm", "git",
+}
+
+def cmd_allowed(cmd: str) -> bool:
+    first = cmd.strip().split()[0] if cmd.strip() else ""
+    return first in ALLOWED_COMMANDS
 
 # Init YouTube service at startup
 init_youtube()
@@ -140,13 +169,9 @@ def alert_all(source: str, message: str, severity: str = "info"):
             threading.Thread(target=lambda: requests.post(WEBHOOK_URL, json=payload, timeout=10), daemon=True).start()
         except: pass
     # Also log to file
-    try:
-        log_path = Path.home() / "logs" / "events.log"
-        log_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(log_path, "a") as f:
-            f.write(f"[{severity.upper()}] [{source}] {message}\n")
-    except OSError:
-        pass
+    log_path = Path.home() / "logs" / "events.log"
+    with open(log_path, "a") as f:
+        f.write(f"[{severity.upper()}] [{source}] {message}\n")
 
 def safe_float(val):
     if val is None or (isinstance(val, float) and math.isnan(val)):
@@ -160,8 +185,6 @@ def get_technical_analysis(coin_id: str):
             timeout=15
         )
         data = r.json()
-        if "prices" not in data or len(data.get("prices", [])) < 14:
-            return {"error": f"CoinGecko data unavailable for {coin_id}"}
         prices = [p[1] for p in data["prices"]]
         volumes = [v[1] for v in data["total_volumes"]]
         df = pd.DataFrame({"close": prices, "volume": volumes})
@@ -199,8 +222,8 @@ def get_technical_analysis(coin_id: str):
             "trend": trend,
             "support": round(min(prices[-14:]), 2),
             "resistance": round(max(prices[-14:]), 2),
-            "change_7d": round((prices[-1]/prices[-7]-1)*100, 2) if len(prices) >= 7 and prices[-7] else 0,
-            "change_30d": round((prices[-1]/prices[0]-1)*100, 2) if prices[0] else 0
+            "change_7d": round((prices[-1]/prices[-7]-1)*100, 2),
+            "change_30d": round((prices[-1]/prices[0]-1)*100, 2)
         }
     except Exception as e:
         return {"error": str(e)}
@@ -452,59 +475,43 @@ async def get_leads():
     leads = [json.loads(l) for l in lines if l.strip()]
     return {"count": len(leads), "leads": leads[-20:]}
 
-def _status_blocking():
-    import shutil, os, subprocess
-    disk = shutil.disk_usage("/")
-    cpu = 0
-    try:
-        load = os.getloadavg()
-        ncpu = os.cpu_count() or 1
-        cpu = round((load[0] / ncpu) * 100, 1)
-    except Exception: pass
-    mem_total = mem_used = 0
-    try:
-        r = subprocess.run(["free", "-m"], capture_output=True, text=True, timeout=3)
-        for line in r.stdout.split("\n"):
-            if line.startswith("Mem:"):
-                parts = line.split()
-                mem_total = int(parts[1])
-                mem_used = int(parts[2])
-    except Exception: pass
-    uptime = "0"
-    try:
-        with open("/proc/uptime") as f:
-            uptime = f.read().split()[0]
-    except Exception: pass
-    return disk, cpu, mem_total, mem_used, uptime
-
-
 @app.get("/status")
 async def status():
+    import shutil, os, subprocess
+    checks = {}
     services = {
         "bot": (8080, "/"),
         "odysseus": (7000, "/"),
         "ollama": (11434, "/api/tags"),
         "casaos": (80, "/"),
     }
-    checks = {}
-    blocking_task = asyncio.create_task(asyncio.to_thread(_status_blocking))
+    for name, (port, path) in services.items():
+        try:
+            r = requests.get(f"http://localhost:{port}{path}", timeout=5)
+            checks[name] = "up" if r.status_code < 500 else "down"
+        except:
+            checks[name] = "down"
+    disk = shutil.disk_usage("/")
+    # CPU load
+    cpu = 0
     try:
-        async with httpx.AsyncClient(timeout=4) as client:
-            async def chk(name, port, path):
-                try:
-                    r = await client.get(f"http://localhost:{port}{path}")
-                    return name, ("up" if r.status_code < 500 else "down")
-                except Exception:
-                    return name, "down"
-            results = await asyncio.gather(*[chk(n, p, pa) for n, (p, pa) in services.items()])
-            checks = dict(results)
-    except Exception:
-        checks = {n: "down" for n in services}
-    disk, cpu, mem_total, mem_used, uptime = await blocking_task
+        load = os.getloadavg()
+        cpu = round((load[0] / os.cpu_count()) * 100, 1)
+    except: pass
+    # Memory
+    mem_total = mem_used = 0
+    try:
+        r = subprocess.run(["free", "-m"], capture_output=True, text=True)
+        for line in r.stdout.split("\n"):
+            if line.startswith("Mem:"):
+                parts = line.split()
+                mem_total = int(parts[1])
+                mem_used = int(parts[2])
+    except: pass
     return {
         "services": checks,
         "disk": f"{disk.free // (2**30)}GB free of {disk.total // (2**30)}GB total",
-        "uptime": uptime,
+        "uptime": open("/proc/uptime").read().split()[0],
         "system": {
             "cpu": f"{cpu}",
             "memory": f"{mem_used}/{mem_total}",
@@ -1153,6 +1160,114 @@ async def api_channel_send(data: dict):
     return result
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# Business Pipeline — Endpoints
+# ═══════════════════════════════════════════════════════════════════════════
+
+PIPELINE_FILE = Path.home() / "inxotive-office" / "pipeline_status.json"
+LEADS_FILE = Path.home() / "inxotive-office" / "leads.json"
+
+STAGE_LABELS = {
+    "lead_in": "📥 Lead In", "enrichment": "🔍 Enrichment",
+    "outreach": "📤 Outreach", "proposal": "📄 Proposal",
+    "negotiation": "🤝 Negotiation", "won": "✅ Won", "lost": "❌ Lost",
+    "build": "🔨 Build", "portal": "🚪 Portal", "deploy": "🚀 Deploy",
+}
+STAGES = list(STAGE_LABELS.keys())
+
+
+@app.get("/api/pipeline")
+async def api_pipeline_status():
+    """Get pipeline status for all leads."""
+    pipeline = {}
+    if PIPELINE_FILE.exists():
+        pipeline = json.loads(PIPELINE_FILE.read_text())
+
+    result = []
+    for safe, data in pipeline.items():
+        stage = data.get("stage", "lead_in")
+        stage_idx = STAGES.index(stage) if stage in STAGES else 0
+
+        contact = data.get("contact", {})
+        sites = data.get("sites", [])
+
+        result.append({
+            "id": safe,
+            "name": data.get("name", safe),
+            "company": data.get("company", ""),
+            "industry": data.get("industry", ""),
+            "pemilik": "",
+            "whatsapp": contact.get("wa", ""),
+            "paket": "landing",
+            "jenis": data.get("industry", ""),
+            "stage": stage,
+            "stage_label": STAGE_LABELS.get(stage, stage),
+            "stage_idx": stage_idx,
+            "source": data.get("source", ""),
+            "notes": data.get("notes", ""),
+            "tags": data.get("tags", []),
+            "progress": [{"stage": s, "label": STAGE_LABELS.get(s, s),
+                          "done": STAGES.index(s) <= stage_idx}
+                         for s in STAGES],
+            "sites": sites,
+            "created": data.get("created", ""),
+            "updated": data.get("updated", ""),
+        })
+
+    counts = {}
+    for s in STAGES:
+        counts[s] = sum(1 for r in result if r["stage"] == s)
+    active = sum(v for s, v in counts.items() if s not in ("won", "lost"))
+
+    return {"leads": result, "counts": counts, "total": len(result), "active": active}
+
+
+@app.post("/api/pipeline/process")
+async def api_pipeline_process(data: dict):
+    """Process a lead through the pipeline."""
+    lead_name = data.get("name", "")
+    import subprocess, sys as _sys
+    cmd = [_sys.executable, str(Path.home() / "market-api" / "scripts" / "business_pipeline.py"),
+           "--lead", lead_name]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        return {"success": r.returncode == 0, "output": r.stdout[-500:], "error": r.stderr[-200:]}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.post("/api/pipeline/lead")
+async def api_pipeline_add_lead(data: dict):
+    """Add a new lead and trigger pipeline."""
+    nama = data.get("nama_usaha", "")
+    if not nama:
+        return {"success": False, "error": "nama_usaha required"}
+
+    lead = {
+        "time": datetime.now().isoformat(),
+        "nama_usaha": nama,
+        "nama_pemilik": data.get("nama_pemilik", ""),
+        "whatsapp": data.get("whatsapp", ""),
+        "email": data.get("email", ""),
+        "jenis_usaha": data.get("jenis_usaha", ""),
+        "paket": data.get("paket", "landing"),
+        "catatan": data.get("catatan", ""),
+    }
+
+    with open(LEADS_FILE, "a") as f:
+        f.write(json.dumps(lead, ensure_ascii=False) + "\n")
+
+    # Trigger pipeline in background
+    import subprocess, sys as _sys, threading
+    def _run():
+        cmd = [_sys.executable, str(Path.home() / "market-api" / "scripts" / "business_pipeline.py"),
+               "--lead", nama]
+        subprocess.run(cmd, capture_output=True, timeout=120)
+    threading.Thread(target=_run, daemon=True).start()
+
+    return {"success": True, "lead": nama, "pipeline": "started"}
+
+
 @app.post("/api/channels/discord-command")
 async def api_discord_command(data: dict):
     """Handle a Discord slash command."""
@@ -1183,7 +1298,7 @@ async def api_remote_session():
     return result
 
 
-@app.post("/api/remote/execute")
+@app.post("/api/remote/execute", dependencies=[Depends(require_token)])
 async def api_remote_execute(data: dict):
     """Execute a command via remote control."""
     token = data.get("token", "")
@@ -1307,11 +1422,10 @@ async def api_ui_comparison(data: dict):
 async def api_ui_check():
     """Check if Playwright is available for UI audit."""
     try:
-        import importlib.util
-        available = importlib.util.find_spec("playwright") is not None
-    except Exception:
-        available = False
-    return {"available": available}
+        from ui_audit import PLAYWRIGHT_AVAILABLE as _pa
+        return {"available": _pa}
+    except Exception as e:
+        return {"available": False, "error": str(e)}
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1595,6 +1709,15 @@ async def chat_endpoint(data: dict):
         return await chat_via_9router(messages, agent, model, image)
     
     system = AGENT_PROMPTS.get(agent, "Kamu asisten AI INXOTIVE. Berikan jawaban informatif, terstruktur dengan poin-poin jelas, dan actionable. Gunakan **bold** untuk penekanan. Bahasa Indonesia yang baik dan profesional.")
+
+    # ─── REASONING ENGINE ───
+    if REASONING_AVAILABLE and not model.startswith("9r/"):
+        last_msg = messages[-1].get("content", "") if messages else ""
+        if last_msg:
+            decision = decide_routing(last_msg)
+            system = decision["system_prompt_suffix"] + "\n\n" + system
+    # ─────────────────────────
+
     if image:
         system += "\n\nKamu juga bisa menganalisis gambar yang dikirim user. Deskripsikan secara detail apa yang kamu lihat."
     
@@ -1615,16 +1738,25 @@ async def chat_endpoint(data: dict):
                 ollama_messages.append({"role": role, "content": content})
     
     try:
-        async with httpx.AsyncClient(timeout=90) as client:
-            r = await client.post("http://localhost:11434/api/chat", json={
-                "model": model.replace("ollama/", ""),
-                "messages": ollama_messages,
-                "stream": False,
-                "options": {"temperature": 0.7, "num_predict": 1024}
-            })
-        if r.status_code < 400:
+        r = requests.post("http://localhost:11434/api/chat", json={
+            "model": model.replace("ollama/", ""),
+            "messages": ollama_messages,
+            "stream": False,
+            "options": {"temperature": 0.7, "num_predict": 1024}
+        }, timeout=90)
+        if r.ok:
             result = r.json()
             reply = result.get("message", {}).get("content", "")
+            # ─── AUTO-CAPTURE ───
+            try:
+                last_msg = messages[-1].get("content", "") if messages else ""
+                d, c = "unknown", "low"
+                if REASONING_AVAILABLE and last_msg:
+                    d, c = classify_task(last_msg)
+                    if c != "low":
+                        after_task_complete(last_msg, c, reply, model.replace("ollama/", "ollama/"))
+            except: pass
+            # ────────────────────
             return {"reply": reply, "agent": agent, "model": model}
         return {"reply": "Maaf, saya sedang tidak bisa menjawab. Coba lagi.", "agent": agent}
     except Exception as e:
@@ -1641,6 +1773,15 @@ async def chat_fast(data: dict):
         return await chat_via_9router(messages, agent, model)
     
     system = AGENT_PROMPTS.get(agent, "Kamu asisten INXOTIVE. Jawab singkat namun informatif, poin-poin jelas, Bahasa Indonesia.")
+
+    # ─── REASONING ENGINE ───
+    if REASONING_AVAILABLE:
+        last_msg = messages[-1].get("content", "") if messages else ""
+        if last_msg:
+            decision = decide_routing(last_msg)
+            system = decision["system_prompt_suffix"] + "\n\n" + system
+    # ─────────────────────────
+
     ollama_msgs = [{"role": "system", "content": system}]
     for msg in messages[-10:]:
         if isinstance(msg, dict):
@@ -1648,16 +1789,24 @@ async def chat_fast(data: dict):
             c = msg.get("content", "")
             if c: ollama_msgs.append({"role": r, "content": c})
     try:
-        async with httpx.AsyncClient(timeout=45) as client:
-            r = await client.post("http://localhost:11434/api/chat", json={
-                "model": model.replace("ollama/", ""),
-                "messages": ollama_msgs,
-                "stream": False,
-                "options": {"temperature": 0.7, "num_predict": 512}
-            })
-        if r.status_code < 400:
+        r = requests.post("http://localhost:11434/api/chat", json={
+            "model": model.replace("ollama/", ""),
+            "messages": ollama_msgs,
+            "stream": False,
+            "options": {"temperature": 0.7, "num_predict": 512}
+        }, timeout=45)
+        if r.ok:
             result = r.json()
             reply = result.get("message", {}).get("content", "")
+            # ─── AUTO-CAPTURE ───
+            try:
+                last_msg = messages[-1].get("content", "") if messages else ""
+                if REASONING_AVAILABLE and last_msg:
+                    d, c = classify_task(last_msg)
+                    if c != "low":
+                        after_task_complete(last_msg, c, reply, model.replace("ollama/", "ollama/"))
+            except: pass
+            # ────────────────────
             return {"reply": reply, "agent": agent, "model": model}
         return {"reply": "Maaf, sedang sibuk. Coba lagi.", "agent": agent}
     except Exception as e:
@@ -1668,6 +1817,15 @@ async def chat_via_9router(messages, agent, model, image=None):
     model_name = model.replace("9r/", "")
     agent_prompt = AGENT_PROMPTS.get(agent, "Kamu asisten AI INXOTIVE yang membantu. Jawab dalam Bahasa Indonesia.")
     system = agent_prompt
+
+    # ─── REASONING ENGINE ───
+    if REASONING_AVAILABLE:
+        last_msg = messages[-1].get("content", "") if messages else ""
+        if last_msg:
+            decision = decide_routing(last_msg)
+            system = decision["system_prompt_suffix"] + "\n\n" + system
+    # ─────────────────────────
+
     if "ringkas" not in system and "singkat" not in system:
         system += "\n\nGunakan Bahasa Indonesia yang baik, jelas, dan terstruktur. Berikan analisis mendalam dengan poin-poin penting, data spesifik bila ada, dan kesimpulan yang actionable. Hindari jawaban generik."
     ollama_msgs = [{"role": "system", "content": system}]
@@ -1678,14 +1836,13 @@ async def chat_via_9router(messages, agent, model, image=None):
             if c: ollama_msgs.append({"role": r, "content": c})
     try:
         api_key = os.environ.get("NINE_ROUTER_API_KEY") or os.environ.get("ROUTER_API_KEY", "")
-        async with httpx.AsyncClient(timeout=120) as client:
-            r = await client.post("http://localhost:20128/v1/chat/completions", json={
-                "model": model_name,
-                "messages": ollama_msgs,
-                "stream": False,
-                "max_tokens": 4096,
-            }, headers={"Authorization": f"Bearer {api_key}"})
-        if r.status_code < 400:
+        r = requests.post("http://localhost:20128/v1/chat/completions", json={
+            "model": model_name,
+            "messages": ollama_msgs,
+            "stream": False,
+            "max_tokens": 4096,
+        }, headers={"Authorization": f"Bearer {api_key}"}, timeout=120)
+        if r.ok:
             body = r.text
             # Find JSON end via brace-matching (reasoning_content may contain 'data:' string)
             depth = 0
@@ -1702,6 +1859,15 @@ async def chat_via_9router(messages, agent, model, image=None):
             data = json.loads(json_str)
             msg = data.get("choices", [{}])[0].get("message", {})
             reply = msg.get("content", "") or msg.get("reasoning_content", "") or ""
+            # ─── AUTO-CAPTURE ───
+            try:
+                last_msg = messages[-1].get("content", "") if messages else ""
+                if REASONING_AVAILABLE and last_msg and reply:
+                    d, c = classify_task(last_msg)
+                    if c != "low":
+                        after_task_complete(last_msg, c, reply, f"9router/{model_name}")
+            except: pass
+            # ────────────────────
             return {"reply": reply or "(empty)", "agent": agent, "model": model}
         return {"reply": f"9Router error: {r.status_code}", "agent": agent}
     except Exception as e:
@@ -1709,29 +1875,25 @@ async def chat_via_9router(messages, agent, model, image=None):
 
 @app.get("/api/models")
 async def list_models():
-    """List available models from Ollama + 9Router (non-blocking)."""
+    """List available models from Ollama + 9Router."""
     models = []
-    api_key = os.environ.get("NINE_ROUTER_API_KEY") or os.environ.get("ROUTER_API_KEY", "")
-    headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
-    async with httpx.AsyncClient(timeout=5) as client:
-        ollama_r, router_r = await asyncio.gather(
-            client.get("http://localhost:11434/api/tags"),
-            client.get("http://localhost:20128/v1/models", headers=headers),
-            return_exceptions=True,
-        )
     # Ollama models
     try:
-        if not isinstance(ollama_r, Exception) and ollama_r.status_code < 400:
-            for m in ollama_r.json().get("models", []):
+        r = requests.get("http://localhost:11434/api/tags", timeout=5)
+        if r.ok:
+            for m in r.json().get("models", []):
                 name = m.get("name", "")
                 if name:
                     models.append({"id": "ollama/"+name, "provider": "Ollama", "local": True})
-    except Exception:
+    except:
         pass
     # 9Router models — fetch from their /v1/models API
     try:
-        if not isinstance(router_r, Exception) and router_r.status_code < 400:
-            for m in router_r.json().get("data", []):
+        api_key = os.environ.get("NINE_ROUTER_API_KEY") or os.environ.get("ROUTER_API_KEY", "")
+        headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+        r = requests.get("http://localhost:20128/v1/models", headers=headers, timeout=5)
+        if r.ok:
+            for m in r.json().get("data", []):
                 mid = m.get("id", "")
                 owner = m.get("owned_by", "")
                 if mid:
@@ -1791,8 +1953,7 @@ async def update_session_title(sid: str, data: dict):
         sessions[sid]["title"] = data.get("title", "Chat")
         save_sessions(sessions)
         return {"ok": True}
-    from fastapi.responses import JSONResponse
-    return JSONResponse({"error": "not found"}, status_code=404)
+    return {"error": "not found"}, 404
 
 # ── SSE Streaming Chat ──
 
@@ -1806,6 +1967,14 @@ async def chat_stream_endpoint(data: dict):
 
     async def generate():
         system = AGENT_PROMPTS.get(agent, "Kamu asisten AI INXOTIVE. Berikan jawaban informatif, terstruktur dengan poin-poin jelas dan actionable. Bahasa Indonesia.")
+
+        # ─── REASONING ENGINE ───
+        if REASONING_AVAILABLE:
+            last_msg = messages[-1].get("content", "") if messages else ""
+            if last_msg:
+                decision = decide_routing(last_msg)
+                system = decision["system_prompt_suffix"] + "\n\n" + system
+        # ─────────────────────────
 
         # Inject MCP tools into system prompt if enabled
         if mcp_enabled:
@@ -1913,6 +2082,17 @@ async def chat_stream_endpoint(data: dict):
                 if len(sessions[session_id]["messages"]) <= 4 and last_user_msg:
                     sessions[session_id]["title"] = (last_user_msg[:60] + "...") if len(last_user_msg) > 60 else last_user_msg
                 save_sessions(sessions)
+
+            # ─── AUTO-CAPTURE dari SSE stream ───
+            if REASONING_AVAILABLE and full_reply:
+                try:
+                    last_msg = messages[-1].get("content", "") if messages else ""
+                    if last_msg:
+                        d, c = classify_task(last_msg)
+                        if c != "low":
+                            after_task_complete(last_msg, c, full_reply, model.replace("9r/", "9router/").replace("ollama/", "ollama/"))
+                except: pass
+            # ─────────────────────────────────────
 
     return StreamingResponse(generate(), media_type="text/event-stream")
 
@@ -2287,39 +2467,22 @@ async def deploy(data: dict):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-import re as _re_exec
-# Whitespace-insensitive patterns for obviously destructive commands.
-_DANGEROUS_PATTERNS = [
-    r"\brm\s+(-[a-z]*\s+)*-?[a-z]*[rf][a-z]*\s+(/|~|\$home|/home|/etc|/usr|/var|/boot|/bin|/lib)(\s|/|\*|$)",
-    r"\bmkfs\b", r"\bdd\b.*\bof=/dev/", r":\(\)\s*\{.*\|.*&.*\}.*;.*:",
-    r">\s*/dev/(sd|nvme|hd|vd)", r"\bchmod\s+(-[a-z]*\s+)*777\s+/(\s|$)",
-    r"\bmv\s+/\s", r"\b(shutdown|reboot|halt|poweroff)\b",
-    r">\s*/dev/sda", r"\bwipefs\b", r"\bfdisk\b",
-]
-
-def _is_dangerous(cmd: str) -> bool:
-    norm = _re_exec.sub(r"\s+", " ", cmd.strip().lower())
-    return any(_re_exec.search(p, norm) for p in _DANGEROUS_PATTERNS)
-
-def _exec_blocking(cmd: str):
-    import subprocess
-    result = subprocess.run(
-        ["bash", "-c", cmd],
-        capture_output=True, text=True, timeout=30,
-        cwd=str(Path.home())
-    )
-    return {"stdout": result.stdout[-2000:], "stderr": result.stderr[-2000:], "code": result.returncode}
-
-@app.post("/exec")
+@app.post("/exec", dependencies=[Depends(require_token)])
 async def exec_command(data: dict):
     cmd = data.get("cmd", "").strip()
     if not cmd:
         return {"stdout": "", "stderr": "No command provided"}
-    if _is_dangerous(cmd):
-        return {"stdout": "", "stderr": "Command blocked for safety", "code": -1}
+    if not cmd_allowed(cmd):
+        return {"stdout": "", "stderr": f"Command not in allowlist. Allowed: {', '.join(sorted(ALLOWED_COMMANDS)[:20])}..."}
     try:
-        return await asyncio.to_thread(_exec_blocking, cmd)
-    except __import__("subprocess").TimeoutExpired:
+        import subprocess
+        result = subprocess.run(
+            ["bash", "-c", cmd],
+            capture_output=True, text=True, timeout=30,
+            cwd=str(Path.home())
+        )
+        return {"stdout": result.stdout[-2000:], "stderr": result.stderr[-2000:], "code": result.returncode}
+    except subprocess.TimeoutExpired:
         return {"stdout": "", "stderr": "Command timed out (30s)", "code": -1}
     except Exception as e:
         return {"stdout": "", "stderr": str(e), "code": -1}
@@ -2328,9 +2491,9 @@ async def exec_command(data: dict):
 async def list_files(path: str = ""):
     """List directory contents. Path relatif ke /home/bisma."""
     import stat as stat_module
-    base = Path.home().resolve()
+    base = Path.home()
     target = (base / path.lstrip("/")).resolve()
-    if target != base and base not in target.parents:
+    if not str(target).startswith(str(base)):
         return {"error": "Access denied", "items": []}
     if not target.exists():
         return {"error": "Not found", "items": []}
@@ -2361,9 +2524,9 @@ async def list_files(path: str = ""):
 @app.get("/api/files/read")
 async def read_file_content(path: str = ""):
     """Read text file content, max 100KB."""
-    base = Path.home().resolve()
+    base = Path.home()
     target = (base / path.lstrip("/")).resolve()
-    if target != base and base not in target.parents:
+    if not str(target).startswith(str(base)):
         return {"error": "Access denied"}
     if not target.is_file():
         return {"error": "Not a file"}
@@ -2377,8 +2540,9 @@ async def read_file_content(path: str = ""):
 
 # ── Ecosystem Endpoints ──
 
-def _ecosystem_blocking():
-    """Blocking parts of the ecosystem aggregator (run in a worker thread)."""
+@app.get("/api/ecosystem")
+async def ecosystem_overview():
+    """Aggregator: semua data ekosistem dalam 1 call."""
     import subprocess, json
     services = {"bot": "down", "odysseus": "down", "ollama": "down",
                 "market-api": "up", "qdrant": "down", "n8n": "down",
@@ -2386,6 +2550,7 @@ def _ecosystem_blocking():
     system = {"cpu": "0", "memory": "0/0", "disk": "0"}
     uptime = 0
     try:
+        # Use subprocess to get system info directly
         cpu_r = subprocess.run(["bash", "-c", "top -bn1 | grep 'Cpu(s)' | awk '{print $2}'"],
             capture_output=True, text=True, timeout=3)
         if cpu_r.returncode == 0 and cpu_r.stdout.strip():
@@ -2402,11 +2567,40 @@ def _ecosystem_blocking():
             capture_output=True, text=True, timeout=3)
         if uptime_r.returncode == 0 and uptime_r.stdout.strip():
             uptime = float(uptime_r.stdout.strip())
+        # Check services via systemctl
         for svc in ["inxotive-bot", "odysseus", "ollama"]:
             sr = subprocess.run(["systemctl", "is-active", svc],
                 capture_output=True, text=True, timeout=3)
             services[svc.replace("inxotive-", "")] = "up" if "active" in sr.stdout else "down"
-    except Exception: pass
+    except: pass
+
+    health = {}
+    targets = [
+        ("odysseus", "http://localhost:7000/api/health"),
+        ("ollama", "http://localhost:11434/api/tags"),
+        ("qdrant", "http://localhost:6333/collections"),
+        ("wa-bridge", "http://localhost:3002/health"),
+        ("n8n", "http://localhost:5678/healthz"),
+        ("uptime-kuma", "http://localhost:3001"),
+        ("meilisearch", "http://localhost:7700/health"),
+    ]
+    for name, url in targets:
+        try:
+            r2 = requests.get(url, timeout=3)
+            health[name] = {"status": "up" if r2.ok else "down", "code": r2.status_code}
+        except:
+            health[name] = {"status": "down", "code": 0}
+
+    try:
+        r3 = requests.get("http://localhost:20128/v1/models", timeout=3,
+            headers={"Authorization": f"Bearer {os.environ.get('NINE_ROUTER_API_KEY','')}"})
+        if r3.ok:
+            ml = r3.json().get("data", [])
+            health["9router"] = {"status": "up", "models": len(ml)}
+        else:
+            health["9router"] = {"status": "down", "code": r3.status_code}
+    except:
+        health["9router"] = {"status": "down", "code": 0}
 
     docker = []
     try:
@@ -2419,7 +2613,7 @@ def _ecosystem_blocking():
                 p = line.split("|")
                 docker.append({"name": p[0], "image": p[1] if len(p)>1 else "",
                               "status": p[2] if len(p)>2 else ""})
-    except Exception: pass
+    except: pass
 
     market = {}
     try:
@@ -2434,13 +2628,14 @@ def _ecosystem_blocking():
                 market["eth"] = eth_data.get("usd", 0)
         fg = md.get("fear_greed", {})
         market["fear_greed"] = fg.get("value", "N/A") if isinstance(fg, dict) else "N/A"
-    except Exception: pass
+    except: pass
 
     events = []
     try:
         if EVENT_BUS.exists():
-            events = json.loads(EVENT_BUS.read_text())[-10:]
-    except Exception: pass
+            all_ev = json.loads(EVENT_BUS.read_text())
+            events = all_ev[-10:]
+    except: pass
 
     heal = {}
     try:
@@ -2453,55 +2648,7 @@ def _ecosystem_blocking():
                 "active_rules": len(hd.get("rules", [])),
                 "last_analysis": hd.get("last_analysis", ""),
             }
-    except Exception: pass
-    return services, system, uptime, docker, market, events, heal
-
-
-async def _check_health(client, name, url):
-    try:
-        r = await client.get(url)
-        return name, {"status": "up" if r.status_code < 400 else "down", "code": r.status_code}
-    except Exception:
-        return name, {"status": "down", "code": 0}
-
-
-@app.get("/api/ecosystem")
-async def ecosystem_overview():
-    """Aggregator: semua data ekosistem dalam 1 call (non-blocking)."""
-    # HTTP health checks run concurrently; blocking subprocess/file IO on a thread.
-    targets = [
-        ("odysseus", "http://localhost:7000/api/health"),
-        ("ollama", "http://localhost:11434/api/tags"),
-        ("qdrant", "http://localhost:6333/collections"),
-        ("wa-bridge", "http://localhost:3002/health"),
-        ("n8n", "http://localhost:5678/healthz"),
-        ("uptime-kuma", "http://localhost:3001"),
-        ("meilisearch", "http://localhost:7700/health"),
-    ]
-    health = {}
-    blocking_task = asyncio.create_task(asyncio.to_thread(_ecosystem_blocking))
-    try:
-        async with httpx.AsyncClient(timeout=3) as client:
-            results = await asyncio.gather(*[_check_health(client, n, u) for n, u in targets])
-            for name, info in results:
-                health[name] = info
-            try:
-                r3 = await client.get("http://localhost:20128/v1/models",
-                    headers={"Authorization": f"Bearer {os.environ.get('NINE_ROUTER_API_KEY','')}"})
-                if r3.status_code < 400:
-                    health["9router"] = {"status": "up", "models": len(r3.json().get("data", []))}
-                else:
-                    health["9router"] = {"status": "down", "code": r3.status_code}
-            except Exception:
-                health["9router"] = {"status": "down", "code": 0}
-    except Exception:
-        pass
-
-    services, system, uptime, docker, market, events, heal = await blocking_task
-    # Reconcile services dict with live health probes so it isn't permanently "down"
-    for key, hname in (("qdrant", "qdrant"), ("n8n", "n8n"), ("wa-bridge", "wa-bridge"), ("9router", "9router")):
-        if health.get(hname, {}).get("status") == "up":
-            services[key] = "up"
+    except: pass
 
     return {
         "services": services, "health": health, "system": system,
@@ -2510,28 +2657,24 @@ async def ecosystem_overview():
         "timestamp": datetime.now().isoformat(),
     }
 
-def _docker_ps_blocking():
-    import subprocess
-    r = subprocess.run(
-        ["docker", "ps", "--format", "{{.Names}}|{{.Image}}|{{.Status}}|{{.Ports}}|{{.CreatedAt}}|{{.Size}}"],
-        capture_output=True, text=True, timeout=5)
-    if r.returncode != 0:
-        return {"containers": [], "error": r.stderr}
-    containers = []
-    for line in r.stdout.strip().split("\n"):
-        if not line.strip(): continue
-        p = line.split("|")
-        containers.append({"name": p[0], "image": p[1] if len(p)>1 else "",
-            "status": p[2] if len(p)>2 else "", "ports": p[3] if len(p)>3 else "",
-            "created": p[4] if len(p)>4 else "", "size": p[5] if len(p)>5 else ""})
-    return {"containers": containers, "total": len(containers)}
-
-
 @app.get("/api/docker/ps")
 async def docker_ps():
-    """Docker containers list (non-blocking)."""
+    """Docker containers list."""
+    import subprocess
     try:
-        return await asyncio.to_thread(_docker_ps_blocking)
+        r = subprocess.run(
+            ["docker", "ps", "--format", "{{.Names}}|{{.Image}}|{{.Status}}|{{.Ports}}|{{.CreatedAt}}|{{.Size}}"],
+            capture_output=True, text=True, timeout=5)
+        if r.returncode != 0:
+            return {"containers": [], "error": r.stderr}
+        containers = []
+        for line in r.stdout.strip().split("\n"):
+            if not line.strip(): continue
+            p = line.split("|")
+            containers.append({"name": p[0], "image": p[1] if len(p)>1 else "",
+                "status": p[2] if len(p)>2 else "", "ports": p[3] if len(p)>3 else "",
+                "created": p[4] if len(p)>4 else "", "size": p[5] if len(p)>5 else ""})
+        return {"containers": containers, "total": len(containers)}
     except Exception as e:
         return {"containers": [], "error": str(e)}
 
@@ -2539,21 +2682,21 @@ async def docker_ps():
 async def wa_status():
     """WhatsApp Bridge connection status + QR code."""
     try:
-        async with httpx.AsyncClient(timeout=3) as client:
-            r = await client.get("http://localhost:3002/health")
-            if r.status_code < 400:
-                result = r.json()
-                # Try to fetch QR image if available
-                if result.get("qr"):
-                    try:
+        r = requests.get("http://localhost:3002/health", timeout=3)
+        if r.ok:
+            result = r.json()
+            # Try to fetch QR image if available
+            if result.get("qr"):
+                try:
+                    async with httpx.AsyncClient(timeout=5) as client:
                         qr_resp = await client.get("http://localhost:3002/qrcode.png")
                         if qr_resp.status_code == 200:
                             import base64
                             result["qr_base64"] = f"data:image/png;base64,{base64.b64encode(qr_resp.content).decode()}"
-                    except Exception:
-                        pass
-                return result
-            return {"connected": False, "qr": False, "error": f"HTTP {r.status_code}"}
+                except Exception:
+                    pass
+            return result
+        return {"connected": False, "qr": False, "error": f"HTTP {r.status_code}"}
     except Exception as e:
         return {"connected": False, "qr": False, "error": str(e)}
 
@@ -2571,48 +2714,45 @@ async def wa_qr():
     except Exception:
         return {"qr": False}
 
-def _market_overview_blocking():
-    """Blocking market snapshot (run in a worker thread)."""
-    market = get_market_data()
-    btc_ta = get_technical_analysis("bitcoin")
-    news = []
-    try:
-        r = requests.get(
-            "https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fcointelegraph.com%2Frss",
-            timeout=5)
-        if r.ok:
-            news = [{"title": i.get("title",""), "url": i.get("link",""),
-                     "source": "CoinTelegraph"} for i in r.json().get("items",[])][:8]
-    except Exception:
-        try:
-            r2 = requests.get("https://min-api.cryptocompare.com/data/v2/news/?lang=EN&limit=8",
-                             timeout=5)
-            if r2.ok:
-                news = [{"title": i.get("title",""), "url": i.get("url",""),
-                         "source": "CryptoCompare"} for i in r2.json().get("Data",[])]
-        except Exception: pass
-    crypto = market.get("crypto", {})
-    coins = {}
-    for name, data in crypto.items():
-        if isinstance(data, dict) and "usd" in data:
-            coins[name] = {"usd": data.get("usd"), "idr": data.get("idr"),
-                "change_24h": data.get("usd_24h_change"),
-                "market_cap": data.get("usd_market_cap")}
-    fg = market.get("fear_greed", {})
-    return {
-        "coins": coins,
-        "fear_greed": fg if isinstance(fg, dict) else {"value": "N/A"},
-        "trending": market.get("trending", ""),
-        "btc_technical": btc_ta,
-        "news": news[:8],
-    }
-
-
 @app.get("/api/market/overview")
 async def market_overview():
-    """Market snapshot: prices, technicals, news (non-blocking)."""
+    """Market snapshot: prices, technicals, news."""
     try:
-        return await asyncio.to_thread(_market_overview_blocking)
+        # Use internal functions instead of HTTP self-calls
+        market = get_market_data()
+        btc_ta = get_technical_analysis("bitcoin")
+        # News from RSS
+        news = []
+        try:
+            r = requests.get(
+                "https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fcointelegraph.com%2Frss",
+                timeout=5)
+            if r.ok:
+                news = [{"title": i.get("title",""), "url": i.get("link",""),
+                         "source": "CoinTelegraph"} for i in r.json().get("items",[])][:8]
+        except:
+            try:
+                r2 = requests.get("https://min-api.cryptocompare.com/data/v2/news/?lang=EN&limit=8",
+                                 timeout=5)
+                if r2.ok:
+                    news = [{"title": i.get("title",""), "url": i.get("url",""),
+                             "source": "CryptoCompare"} for i in r2.json().get("Data",[])]
+            except: pass
+        crypto = market.get("crypto", {})
+        coins = {}
+        for name, data in crypto.items():
+            if isinstance(data, dict) and "usd" in data:
+                coins[name] = {"usd": data.get("usd"), "idr": data.get("idr"),
+                    "change_24h": data.get("usd_24h_change"),
+                    "market_cap": data.get("usd_market_cap")}
+        fg = market.get("fear_greed", {})
+        return {
+            "coins": coins,
+            "fear_greed": fg if isinstance(fg, dict) else {"value": "N/A"},
+            "trending": market.get("trending", ""),
+            "btc_technical": btc_ta,
+            "news": news[:8],
+        }
     except Exception as e:
         return {"error": str(e)}
 
@@ -2656,6 +2796,27 @@ def _odyssey_ensure_auth():
         except: pass
         return False
 
+# ── REASONING ENGINE API ──
+
+@app.get("/api/reasoning/stats")
+async def reasoning_stats():
+    """Statistik reasoning cache — total, per-domain, recent patterns."""
+    if not REASONING_AVAILABLE:
+        return {"status": "unavailable", "error": "RE not loaded"}
+    from reasoning_engine import detailed_stats
+    return detailed_stats()
+
+@app.get("/api/reasoning/patterns")
+async def reasoning_patterns(limit: int = 10):
+    """List recent reasoning patterns."""
+    if not REASONING_AVAILABLE:
+        return {"patterns": [], "total": 0}
+    from reasoning_engine import list_recent_patterns
+    patterns = list_recent_patterns(limit=min(limit, 50))
+    return {"patterns": patterns, "total": len(patterns)}
+
+# ── ODYSSEY PROXY ──
+
 @app.get("/api/odyssey/{path:path}")
 async def odyssey_get(path: str, request: Request):
     """Proxy GET to Odysseus API, forwarding query params."""
@@ -2682,21 +2843,6 @@ async def odyssey_post(path: str, data: dict = {}):
         cookies = {"odysseus_session": _ODYSSEY_COOKIE, "csrf_token": _ODYSSEY_CSRF}
         if _ODYSSEY_CSRF: cookies["csrf_token"] = _ODYSSEY_CSRF
         r = requests.post(f"http://localhost:7000/api/{path}",
-            json=data, cookies=cookies, timeout=10,
-            headers={"Content-Type": "application/json"})
-        return r.json() if r.text else {}
-    except Exception as e:
-        return {"error": str(e)}
-
-@app.put("/api/odyssey/{path:path}")
-async def odyssey_put(path: str, data: dict = {}):
-    """Proxy PUT to Odysseus API (used for prefs/theme sync)."""
-    if not _odyssey_ensure_auth():
-        return {"error": "Odysseus unavailable"}
-    try:
-        cookies = {"odysseus_session": _ODYSSEY_COOKIE}
-        if _ODYSSEY_CSRF: cookies["csrf_token"] = _ODYSSEY_CSRF
-        r = requests.put(f"http://localhost:7000/api/{path}",
             json=data, cookies=cookies, timeout=10,
             headers={"Content-Type": "application/json"})
         return r.json() if r.text else {}
