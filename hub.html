@@ -198,6 +198,7 @@ body { background: #F4F5FA; color: #061c34; overflow: hidden; -webkit-font-smoot
 .app { display: flex; height: 100vh; overflow: hidden; }
 .sidebar { width: 260px; min-width: 260px; z-index: 40; }
 .mini-rail { width: 80px; min-width: 80px; z-index: 50; }
+.main { position: relative; }
 .chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .chat-messages { flex: 1; overflow-y: auto; padding: 16px 20px; }
 .chat-messages::-webkit-scrollbar { width: 6px; }
@@ -2640,7 +2641,7 @@ function searchMemory() {
   var el = document.getElementById('memoryList');
   if (!el) return;
   el.innerHTML = '<div class="loading-state">Searching...</div>';
-  fetch('/api/odyssey/memory/search' + encodeURIComponent(q)).then(function(r) { return r.json(); }).then(function(d) {
+  fetch('/api/odyssey/memory/search?q=' + encodeURIComponent(q)).then(function(r) { return r.json(); }).then(function(d) {
     var results = d.results || d.memories || [];
     if (!results.length) { el.innerHTML = '<div class="empty-state">No results for \"' + q + '\"</div>'; return; }
     el.innerHTML = results.map(function(m) {
@@ -2816,6 +2817,7 @@ function loadMarketData() {
   coinsEl.innerHTML = '<div class="loading-state">Loading market...</div>';
   fetch('/api/market/overview').then(function(r) { return r.json(); }).then(function(d) {
     // Coins
+    var TICKERS={bitcoin:'BTC',ethereum:'ETH',binancecoin:'BNB',solana:'SOL',ripple:'XRP'};
     var coins = d.coins || {};
     coinsEl.innerHTML = Object.keys(coins).map(function(name) {
       var c = coins[name];
@@ -2823,7 +2825,7 @@ function loadMarketData() {
       var changeCls = change >= 0 ? 'up' : 'down';
       return '<div class="stat-card"><div class="stat-icon"><i class="fas fa-coins"></i></div>' +
         '<div><div class="stat-value">$' + (c.usd ? c.usd.toLocaleString() : 'N/A') + '</div>' +
-        '<div class="stat-label">' + name.toUpperCase() + ' <span class="badge ' + changeCls + '">' +
+        '<div class="stat-label">' + (TICKERS[name]||name.toUpperCase()) + ' <span class="badge ' + changeCls + '">' +
         (change ? (change >= 0 ? '+' : '') + change.toFixed(2) + '%' : 'N/A') + '</span></div></div></div>';
     }).join('');
     // Fear & Greed
@@ -3253,7 +3255,7 @@ function searchKnowledge() {
   var el = document.getElementById('kbResults');
   if (!q) { el.innerHTML = '<div class="empty-state">Masukkan query</div>'; return; }
   el.innerHTML = '<div class="loading-state">Mencari...</div>';
-  fetch('/knowledge?q=' + encodeURIComponent(q) + '&limit=10')
+  fetch('/knowledge?q=' + encodeURIComponent(q))
     .then(function(r) { return r.json(); })
     .then(function(d) {
       var results = d.results || [];
@@ -3730,15 +3732,7 @@ async function refreshMCPPanel() {
     // Update dot status on button
     var dot = document.getElementById('mcpDot');
     if (dot) dot.style.background = connectedCount === 0 ? '#FA896B' : '#22c55e';
-    // Update dot status
-    var dot = document.getElementById('mcpDot');
-    if (connectedCount === 0) {
-      dot.className = 'dot error';
-    } else if (connectedCount < servers.length) {
-      dot.className = 'dot on';
-    } else {
-      dot.className = 'dot on';
-    }
+
   } catch(e) {
     body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger)">Error: ' + escHtml(e.message) + '</div>';
   }
